@@ -14,7 +14,7 @@ A comprehensive React application for calculating hospital nursing staffing requ
 
 ## Live Demo
 
-Visit the live application: [https://username.github.io/nursing-calculator](https://username.github.io/nursing-calculator)
+Visit the live application: [https://tdh1985.github.io/nursing-calculator](https://tdh1985.github.io/nursing-calculator)
 
 ## Deployment Instructions
 
@@ -79,7 +79,7 @@ The repository includes a GitHub Actions workflow that will:
 3. **Build the React application**
 4. **Deploy to GitHub Pages** automatically
 
-Your site will be available at: `https://YOUR_USERNAME.github.io/nursing-calculator`
+Your site will be available at: `https://tdh1985.github.io/nursing-calculator`
 
 ### Manual Deployment (Alternative)
 
