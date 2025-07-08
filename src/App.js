@@ -283,7 +283,6 @@ const NursingCalculator = () => {
 
   const amNurses = parseInt(currentNursesAM) || 0;
   const totalHours = calculateTotalHours();
-  const amAdmissionCapacity = amNurses > 0 ? calculateAdmissionCapacity(amNurses, []) : null;
   const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, nurseAssignments);
   const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, nurseAssignments);
   
