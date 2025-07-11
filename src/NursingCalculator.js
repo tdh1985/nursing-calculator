@@ -483,12 +483,12 @@ const NursingCalculator = () => {
           
           <button 
             onClick={() => {
-              console.log('Manual calculation button clicked');
+              console.log('Manual calculation button clicked - REBUILD VERSION');
               calculateNurses();
             }}
             className="mb-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
-            DEBUG: Manual Calculate
+            🔧 DEBUG: Manual Calculate (v2)
           </button>
           
           {viewMode === 'split' && (
