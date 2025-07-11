@@ -290,7 +290,6 @@ const NursingCalculator = () => {
       return ['No capacity - all beds occupied (after planned movements)'];
     }
 
-    let usedCapacity = 0;
     const activeAssignments = currentAssignments.map(nurse => ({
       ...nurse,
       beds: nurse.beds.filter(bed => {
