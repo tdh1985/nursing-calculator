@@ -204,6 +204,17 @@ const NursingCalculator = () => {
       };
     });
 
+    // Debug logging
+    console.log('Nurse assignments:', assignments.map(nurse => ({
+      id: nurse.id,
+      beds: nurse.beds.map(bed => `B${bed.id}(${bed.ratio})`)
+    })));
+    console.log('Updated beds:', updatedBeds.filter(bed => bed.ratio).map(bed => ({
+      id: bed.id,
+      ratio: bed.ratio,
+      nurseAssigned: bed.nurseAssigned
+    })));
+    
     setBeds(updatedBeds);
     setNurseAssignments(assignments);
     
