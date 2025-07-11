@@ -228,9 +228,12 @@ const NursingCalculator = () => {
   }, [beds, includeInCharge]);
 
   const updateBedRatio = (bedId, ratio) => {
+    console.log('updateBedRatio called:', bedId, ratio);
     setBeds(beds.map(bed => 
       bed.id === bedId ? { ...bed, ratio } : bed
     ));
+    // Force calculation after updating ratio
+    setTimeout(() => calculateNurses(), 100);
   };
 
   const updateNewRatio = (bedId, newRatio) => {
@@ -477,6 +480,16 @@ const NursingCalculator = () => {
           <h2 className="text-2xl font-bold mb-6 text-zinc-100 relative z-10">
             {viewMode === 'split' ? 'Bed Status & Changes' : 'PM & Night Planning'}
           </h2>
+          
+          <button 
+            onClick={() => {
+              console.log('Manual calculation button clicked');
+              calculateNurses();
+            }}
+            className="mb-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            DEBUG: Manual Calculate
+          </button>
           
           {viewMode === 'split' && (
             <div className="mb-8 grid md:grid-cols-2 gap-4 relative z-10">
