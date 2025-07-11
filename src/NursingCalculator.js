@@ -161,7 +161,7 @@ const NursingCalculator = () => {
     // Sort groups by patient count (1:1 first, then 1:2, etc.)
     const sortedGroupKeys = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
 
-    // Assign nurses to groups
+    // Assign nurses to groups optimally
     sortedGroupKeys.forEach(key => {
       const patientCount = parseInt(key);
       const bedsInGroup = groups[key];
@@ -177,20 +177,24 @@ const NursingCalculator = () => {
           assignments.push(nurse);
         });
       } else {
-        // For 1:2, 1:3, 1:4, etc., each bed represents the full patient load for that nurse
-        // A 1:2 bed means 2 patients, so one nurse takes that entire bed
-        bedsInGroup.forEach(bed => {
+        // For 1:2, 1:3, 1:4, etc., group beds optimally
+        // A nurse can handle up to 'patientCount' beds of this ratio
+        while (bedsInGroup.length > 0) {
           const nurse = {
             id: nurseId++,
-            beds: [bed]
+            beds: []
           };
-          bed.nurseAssigned = nurse.id;
+          
+          // Assign up to 'patientCount' beds to this nurse
+          for (let i = 0; i < patientCount && bedsInGroup.length > 0; i++) {
+            const bed = bedsInGroup.shift();
+            bed.nurseAssigned = nurse.id;
+            nurse.beds.push(bed);
+          }
           assignments.push(nurse);
-        });
+        }
       }
     });
-
-    // All beds have been assigned in the grouping phase above
 
     const updatedBeds = beds.map(bed => {
       const assignedBed = bedsWithRatios.find(b => b.id === bed.id);
