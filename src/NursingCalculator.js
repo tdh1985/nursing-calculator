@@ -344,58 +344,65 @@ const NursingCalculator = () => {
       })
     }));
 
-    // Calculate used capacity based on actual fractional loads
-    let usedCapacity = 0;
+    // Calculate realistic admission capacity by simulating the assignment process
+    const capacityOptions = [];
+    const unassignedNurses = totalNurses - activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
+    
+    // Find nurses with remaining capacity
+    const nursesWithCapacity = [];
     activeAssignments.forEach(nurse => {
       if (nurse.beds && nurse.beds.length > 0) {
-        const nurseLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-        usedCapacity += nurseLoad;
+        const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
+        const remainingLoad = 1.0 - currentLoad;
+        if (remainingLoad > 0.24) { // Minimum capacity for 1:4 patient
+          nursesWithCapacity.push(remainingLoad);
+        }
       }
     });
-
-    const remainingCapacity = totalNurses - usedCapacity;
     
-    if (remainingCapacity < 0.25) {
+    // Add unassigned nurses (each has 1.0 capacity)
+    for (let i = 0; i < unassignedNurses; i++) {
+      nursesWithCapacity.push(1.0);
+    }
+    
+    if (nursesWithCapacity.length === 0) {
       return ['No capacity - all nurses at maximum workload'];
     }
-
-    const capacityOptions = [];
-    const totalAvailableCapacity = remainingCapacity;
     
-    // Option 1: All 1:1 patients (1 nurse per patient)
-    if (totalAvailableCapacity >= 1) {
-      const maxPatientsFor1to1 = Math.floor(totalAvailableCapacity); // 1 nurse per patient
-      const actual1to1 = Math.min(maxPatientsFor1to1, availableBeds);
-      if (actual1to1 > 0) {
-        capacityOptions.push(`${actual1to1} × 1:1 patient${actual1to1 > 1 ? 's' : ''}`);
+    // Calculate capacity for each ratio type
+    const testCapacity = (patientLoad) => {
+      const nurseCapacities = [...nursesWithCapacity].sort((a, b) => b - a); // Sort descending
+      let patients = 0;
+      
+      for (let capacity of nurseCapacities) {
+        patients += Math.floor(capacity / patientLoad);
       }
+      
+      return Math.min(patients, availableBeds);
+    };
+    
+    // Option 1: 1:1 patients
+    const capacity1to1 = testCapacity(1.0);
+    if (capacity1to1 > 0) {
+      capacityOptions.push(`${capacity1to1} × 1:1 patient${capacity1to1 > 1 ? 's' : ''}`);
     }
     
-    // Option 2: All 1:2 patients (can fit 2 patients per nurse capacity)
-    if (totalAvailableCapacity >= 0.5) {
-      const maxPatientsFor1to2 = Math.floor(totalAvailableCapacity / 0.5); // 2 patients per nurse
-      const actual1to2 = Math.min(maxPatientsFor1to2, availableBeds);
-      if (actual1to2 > 0) {
-        capacityOptions.push(`${actual1to2} × 1:2 patient${actual1to2 > 1 ? 's' : ''}`);
-      }
+    // Option 2: 1:2 patients
+    const capacity1to2 = testCapacity(0.5);
+    if (capacity1to2 > 0) {
+      capacityOptions.push(`${capacity1to2} × 1:2 patient${capacity1to2 > 1 ? 's' : ''}`);
     }
     
-    // Option 3: All 1:3 patients (can fit 3 patients per nurse capacity)
-    if (totalAvailableCapacity >= 0.33) {
-      const maxPatientsFor1to3 = Math.floor(totalAvailableCapacity / 0.33); // 3 patients per nurse
-      const actual1to3 = Math.min(maxPatientsFor1to3, availableBeds);
-      if (actual1to3 > 0) {
-        capacityOptions.push(`${actual1to3} × 1:3 patient${actual1to3 > 1 ? 's' : ''}`);
-      }
+    // Option 3: 1:3 patients
+    const capacity1to3 = testCapacity(0.33);
+    if (capacity1to3 > 0) {
+      capacityOptions.push(`${capacity1to3} × 1:3 patient${capacity1to3 > 1 ? 's' : ''}`);
     }
     
-    // Option 4: All 1:4 patients (can fit 4 patients per nurse capacity)  
-    if (totalAvailableCapacity >= 0.25) {
-      const maxPatientsFor1to4 = Math.floor(totalAvailableCapacity / 0.25); // 4 patients per nurse
-      const actual1to4 = Math.min(maxPatientsFor1to4, availableBeds);
-      if (actual1to4 > 0) {
-        capacityOptions.push(`${actual1to4} × 1:4 patient${actual1to4 > 1 ? 's' : ''}`);
-      }
+    // Option 4: 1:4 patients
+    const capacity1to4 = testCapacity(0.25);
+    if (capacity1to4 > 0) {
+      capacityOptions.push(`${capacity1to4} × 1:4 patient${capacity1to4 > 1 ? 's' : ''}`);
     }
 
     return capacityOptions.length > 0 ? capacityOptions : ['No capacity - all nurses at maximum workload'];
