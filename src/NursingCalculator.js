@@ -78,6 +78,7 @@ const NursingCalculator = () => {
   };
 
   const calculateNurses = useCallback(() => {
+    console.log('calculateNurses function called');
     const assignments = [];
     let nurseId = 1;
     
@@ -146,6 +147,8 @@ const NursingCalculator = () => {
         nurseAssigned: null
       };
     }).filter(bed => bed !== null && bed.patientCount !== null && bed.status !== 'discharge' && bed.status !== 'toWard');
+
+    console.log('Beds with ratios:', bedsWithRatios.map(bed => ({id: bed.id, ratio: bed.ratio, patientCount: bed.patientCount})));
 
     const groups = {};
     
