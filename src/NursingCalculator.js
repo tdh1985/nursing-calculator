@@ -840,46 +840,79 @@ const NursingCalculator = () => {
 
         {/* Admission Capacity */}
         {(pmAdmissionCapacity.length > 0 || nightAdmissionCapacity.length > 0) && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6">
-            <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center">
-              <span className="w-3 h-3 bg-green-400 rounded-full mr-3"></span>
-              Admission Capacity
-            </h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-6 rounded-xl">
-                <h3 className="font-bold text-orange-400 mb-4 text-sm uppercase tracking-wider flex items-center">
-                  <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
-                  PM Shift Capacity
-                </h3>
-                <div className="space-y-2">
-                  {pmAdmissionCapacity.map((capacity, index) => (
-                    <div key={index} className="flex items-center text-sm">
-                      <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-3"></span>
-                      <span className="text-zinc-300">{capacity}</span>
-                      {index < pmAdmissionCapacity.length - 1 && (
-                        <span className="text-zinc-500 ml-2 text-xs font-bold">OR</span>
-                      )}
-                    </div>
-                  ))}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-full blur-3xl"></div>
+            <div className="relative z-10">
+              <h2 className="text-2xl font-bold mb-8 text-zinc-100 flex items-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-4">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
                 </div>
-              </div>
+                <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                  Admission Capacity
+                </span>
+              </h2>
               
-              <div className="bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 p-6 rounded-xl">
-                <h3 className="font-bold text-purple-400 mb-4 text-sm uppercase tracking-wider flex items-center">
-                  <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
-                  Night Shift Capacity
-                </h3>
-                <div className="space-y-2">
-                  {nightAdmissionCapacity.map((capacity, index) => (
-                    <div key={index} className="flex items-center text-sm">
-                      <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-3"></span>
-                      <span className="text-zinc-300">{capacity}</span>
-                      {index < nightAdmissionCapacity.length - 1 && (
-                        <span className="text-zinc-500 ml-2 text-xs font-bold">OR</span>
-                      )}
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="group">
+                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/50 transition-all duration-300">
+                    <div className="flex items-center mb-6">
+                      <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center mr-3">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-slate-100 text-lg">PM Shift</h3>
                     </div>
-                  ))}
+                    <div className="space-y-4">
+                      {pmAdmissionCapacity.map((capacity, index) => (
+                        <div key={index}>
+                          <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/30">
+                            <span className="text-slate-200 font-medium">{capacity}</span>
+                            <div className="w-2 h-2 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full"></div>
+                          </div>
+                          {index < pmAdmissionCapacity.length - 1 && (
+                            <div className="flex items-center justify-center py-2">
+                              <div className="bg-slate-700/50 px-3 py-1 rounded-full">
+                                <span className="text-slate-400 text-xs font-bold tracking-wider">OR</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="group">
+                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/50 transition-all duration-300">
+                    <div className="flex items-center mb-6">
+                      <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-slate-100 text-lg">Night Shift</h3>
+                    </div>
+                    <div className="space-y-4">
+                      {nightAdmissionCapacity.map((capacity, index) => (
+                        <div key={index}>
+                          <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/30">
+                            <span className="text-slate-200 font-medium">{capacity}</span>
+                            <div className="w-2 h-2 bg-gradient-to-br from-violet-400 to-purple-400 rounded-full"></div>
+                          </div>
+                          {index < nightAdmissionCapacity.length - 1 && (
+                            <div className="flex items-center justify-center py-2">
+                              <div className="bg-slate-700/50 px-3 py-1 rounded-full">
+                                <span className="text-slate-400 text-xs font-bold tracking-wider">OR</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
