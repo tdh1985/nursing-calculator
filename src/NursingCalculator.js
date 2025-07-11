@@ -344,31 +344,23 @@ const NursingCalculator = () => {
       })
     }));
 
-    // Calculate used capacity based on actual nurse assignments
-    // Each nurse assignment represents 1 full nurse, regardless of their patient load
-    const usedNurses = activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
-    const usedCapacity = usedNurses;
+    // Calculate used capacity based on actual fractional loads
+    let usedCapacity = 0;
+    activeAssignments.forEach(nurse => {
+      if (nurse.beds && nurse.beds.length > 0) {
+        const nurseLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
+        usedCapacity += nurseLoad;
+      }
+    });
 
     const remainingCapacity = totalNurses - usedCapacity;
     
-    if (remainingCapacity < 1) {
-      return ['No capacity - all nurses assigned'];
+    if (remainingCapacity < 0.25) {
+      return ['No capacity - all nurses at maximum workload'];
     }
 
     const capacityOptions = [];
-    const availableNurses = Math.floor(remainingCapacity);
-    
-    // Calculate capacity options based on the actual assignment logic
-    // Check if any existing nurses have remaining capacity for mixed assignments
-    let remainingNurseCapacity = 0;
-    activeAssignments.forEach(nurse => {
-      if (nurse.beds && nurse.beds.length > 0) {
-        const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-        remainingNurseCapacity += Math.max(0, 1.0 - currentLoad);
-      }
-    });
-    
-    const totalAvailableCapacity = availableNurses + remainingNurseCapacity;
+    const totalAvailableCapacity = remainingCapacity;
     
     // Option 1: All 1:1 patients (1 nurse per patient)
     if (totalAvailableCapacity >= 1) {
