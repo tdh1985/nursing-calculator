@@ -196,7 +196,7 @@ const NursingCalculator = () => {
     // Handle remaining beds that couldn't form complete groups
     const remaining = [];
     Object.values(groups).forEach(group => {
-      remaining.push(...group);
+      remaining.push(...group); // Only unassigned beds remain in the groups
     });
 
     // Try to optimally assign remaining beds
