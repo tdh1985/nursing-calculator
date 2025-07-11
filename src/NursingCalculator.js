@@ -275,9 +275,9 @@ const NursingCalculator = () => {
 
   const validateRatio = (text) => {
     if (text === '') return true;
-    // Allow formats like 1:1, 1:2, 1:3, 1:4, etc.
-    const pattern = /^1:[1-9]\d*$/;
-    return pattern.test(text) || /^[0-9:]*$/.test(text);
+    // Allow partial input while typing (just numbers and colons)
+    // This allows: "1", "1:", "1:1", "1:2", etc.
+    return /^[0-9:]*$/.test(text);
   };
 
   const validateTimeInput = (text) => {
