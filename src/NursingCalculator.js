@@ -162,40 +162,48 @@ const NursingCalculator = () => {
     // Sort groups by patient count (1:1 first, then 1:2, etc.)
     const sortedGroupKeys = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
 
-    // Assign nurses to groups optimally
+    // Assign nurses optimally based on patient ratios
+    // A nurse can handle patients up to their maximum ratio capacity
+    const allBeds = [];
     sortedGroupKeys.forEach(key => {
       const patientCount = parseInt(key);
       const bedsInGroup = groups[key];
+      bedsInGroup.forEach(bed => {
+        allBeds.push({...bed, maxPatients: patientCount});
+      });
+    });
+    
+    // Sort beds by ratio (1:1 first, then 1:2, etc.) to prioritize high-acuity patients
+    allBeds.sort((a, b) => a.maxPatients - b.maxPatients);
+    
+    // Assign nurses optimally
+    while (allBeds.length > 0) {
+      const nurse = {
+        id: nurseId++,
+        beds: []
+      };
       
-      if (patientCount === 1) {
-        // 1:1 patients each get their own nurse
-        bedsInGroup.forEach(bed => {
-          const nurse = {
-            id: nurseId++,
-            beds: [bed]
-          };
+      let nurseCapacity = 0;
+      let maxNurseRatio = 0;
+      
+      // Assign beds to this nurse up to their capacity
+      for (let i = allBeds.length - 1; i >= 0; i--) {
+        const bed = allBeds[i];
+        const bedPatients = bed.maxPatients;
+        
+        // Check if this nurse can handle this bed
+        if (nurseCapacity + bedPatients <= Math.max(maxNurseRatio, bedPatients)) {
+          // Assign this bed to the nurse
           bed.nurseAssigned = nurse.id;
-          assignments.push(nurse);
-        });
-      } else {
-        // For 1:2, 1:3, 1:4, etc., group beds optimally
-        // A nurse can handle up to 'patientCount' beds of this ratio
-        while (bedsInGroup.length > 0) {
-          const nurse = {
-            id: nurseId++,
-            beds: []
-          };
-          
-          // Assign up to 'patientCount' beds to this nurse
-          for (let i = 0; i < patientCount && bedsInGroup.length > 0; i++) {
-            const bed = bedsInGroup.shift();
-            bed.nurseAssigned = nurse.id;
-            nurse.beds.push(bed);
-          }
-          assignments.push(nurse);
+          nurse.beds.push(bed);
+          nurseCapacity += bedPatients;
+          maxNurseRatio = Math.max(maxNurseRatio, bedPatients);
+          allBeds.splice(i, 1);
         }
       }
-    });
+      
+      assignments.push(nurse);
+    }
 
     const updatedBeds = beds.map(bed => {
       const assignedBed = bedsWithRatios.find(b => b.id === bed.id);
