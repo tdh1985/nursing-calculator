@@ -1,8 +1,8 @@
 {
   "name": "nursing-calculator",
   "version": "1.0.0",
+  "description": "Hospital Nursing Calculator - Advanced shift planning system",
   "private": true,
-  "homepage": "https://tdh1985.github.io/nursing-calculator",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -18,8 +18,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
@@ -36,5 +35,6 @@
   },
   "devDependencies": {
     "gh-pages": "^6.0.0"
-  }
+  },
+  "homepage": "https://tdh1985.github.io/nursing-calculator"
 }
