@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/nursing-calculator/static/css/main.53f21a54.css",
-    "main.js": "/nursing-calculator/static/js/main.7e873d14.js",
+    "main.js": "/nursing-calculator/static/js/main.9d6eb1a4.js",
     "index.html": "/nursing-calculator/index.html",
     "main.53f21a54.css.map": "/nursing-calculator/static/css/main.53f21a54.css.map",
-    "main.7e873d14.js.map": "/nursing-calculator/static/js/main.7e873d14.js.map"
+    "main.9d6eb1a4.js.map": "/nursing-calculator/static/js/main.9d6eb1a4.js.map"
   },
   "entrypoints": [
     "static/css/main.53f21a54.css",
-    "static/js/main.7e873d14.js"
+    "static/js/main.9d6eb1a4.js"
   ]
 }
