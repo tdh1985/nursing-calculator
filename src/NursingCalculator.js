@@ -177,58 +177,20 @@ const NursingCalculator = () => {
           assignments.push(nurse);
         });
       } else {
-        // For 1:2, 1:3, 1:4, etc., try to group beds together
-        while (bedsInGroup.length >= patientCount) {
+        // For 1:2, 1:3, 1:4, etc., each bed represents the full patient load for that nurse
+        // A 1:2 bed means 2 patients, so one nurse takes that entire bed
+        bedsInGroup.forEach(bed => {
           const nurse = {
             id: nurseId++,
-            beds: []
+            beds: [bed]
           };
-          for (let i = 0; i < patientCount; i++) {
-            const bed = bedsInGroup.shift();
-            bed.nurseAssigned = nurse.id;
-            nurse.beds.push(bed);
-          }
-          assignments.push(nurse);
-        }
-      }
-    });
-
-    // Handle remaining beds that couldn't form complete groups
-    const remaining = [];
-    Object.values(groups).forEach(group => {
-      remaining.push(...group); // Only unassigned beds remain in the groups
-    });
-
-    // Try to optimally assign remaining beds
-    remaining.sort((a, b) => a.patientCount - b.patientCount); // Sort by workload (lower ratio first)
-    
-    remaining.forEach(bed => {
-      let assigned = false;
-      
-      // Try to find a nurse who can take this patient
-      for (let nurse of assignments) {
-        const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-        const newLoad = currentLoad + (1 / bed.patientCount);
-        
-        // A nurse can handle up to 1.0 workload (e.g., one 1:1, or two 1:2s, or three 1:3s, etc.)
-        if (newLoad <= 1.0) {
-          nurse.beds.push(bed);
           bed.nurseAssigned = nurse.id;
-          assigned = true;
-          break;
-        }
-      }
-      
-      // If no existing nurse can take this patient, create a new nurse
-      if (!assigned) {
-        const nurse = {
-          id: nurseId++,
-          beds: [bed]
-        };
-        bed.nurseAssigned = nurse.id;
-        assignments.push(nurse);
+          assignments.push(nurse);
+        });
       }
     });
+
+    // All beds have been assigned in the grouping phase above
 
     const updatedBeds = beds.map(bed => {
       const assignedBed = bedsWithRatios.find(b => b.id === bed.id);
