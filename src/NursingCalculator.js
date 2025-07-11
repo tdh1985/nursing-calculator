@@ -78,7 +78,6 @@ const NursingCalculator = () => {
   };
 
   const calculateNurses = useCallback(() => {
-    console.log('calculateNurses function called');
     const assignments = [];
     let nurseId = 1;
     
@@ -148,7 +147,6 @@ const NursingCalculator = () => {
       };
     }).filter(bed => bed !== null && bed.patientCount !== null && bed.status !== 'discharge' && bed.status !== 'toWard');
 
-    console.log('Beds with ratios:', bedsWithRatios.map(bed => ({id: bed.id, ratio: bed.ratio, patientCount: bed.patientCount})));
 
     const groups = {};
     
@@ -207,16 +205,6 @@ const NursingCalculator = () => {
       };
     });
 
-    // Debug logging
-    console.log('Nurse assignments:', assignments.map(nurse => ({
-      id: nurse.id,
-      beds: nurse.beds.map(bed => `B${bed.id}(${bed.ratio})`)
-    })));
-    console.log('Updated beds:', updatedBeds.filter(bed => bed.ratio).map(bed => ({
-      id: bed.id,
-      ratio: bed.ratio,
-      nurseAssigned: bed.nurseAssigned
-    })));
     
     setBeds(updatedBeds);
     setNurseAssignments(assignments);
@@ -228,7 +216,6 @@ const NursingCalculator = () => {
   }, [beds, includeInCharge]);
 
   const updateBedRatio = (bedId, ratio) => {
-    console.log('updateBedRatio called:', bedId, ratio);
     setBeds(beds.map(bed => 
       bed.id === bedId ? { ...bed, ratio } : bed
     ));
@@ -481,15 +468,6 @@ const NursingCalculator = () => {
             {viewMode === 'split' ? 'Bed Status & Changes' : 'PM & Night Planning'}
           </h2>
           
-          <button 
-            onClick={() => {
-              console.log('Manual calculation button clicked - REBUILD VERSION');
-              calculateNurses();
-            }}
-            className="mb-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            🔧 DEBUG: Manual Calculate (v2)
-          </button>
           
           {viewMode === 'split' && (
             <div className="mb-8 grid md:grid-cols-2 gap-4 relative z-10">
