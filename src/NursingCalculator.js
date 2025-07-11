@@ -322,34 +322,38 @@ const NursingCalculator = () => {
 
     const capacityOptions = [];
     
+    // Calculate mutually exclusive capacity options
+    // Option 1: All 1:1 patients
     if (remainingCapacity >= 1) {
-      const nursesFor1to1 = Math.floor(remainingCapacity);
-      const actual1to1 = Math.min(nursesFor1to1, availableBeds);
+      const maxPatientsFor1to1 = Math.floor(remainingCapacity);
+      const actual1to1 = Math.min(maxPatientsFor1to1, availableBeds);
       if (actual1to1 > 0) {
         capacityOptions.push(`${actual1to1} × 1:1 patient${actual1to1 > 1 ? 's' : ''}`);
       }
     }
     
+    // Option 2: All 1:2 patients
     if (remainingCapacity >= 0.5) {
-      const nursesFor1to2 = Math.floor(remainingCapacity / 0.5);
-      const actual1to2 = Math.min(nursesFor1to2, availableBeds);
+      const maxPatientsFor1to2 = Math.floor(remainingCapacity / 0.5);
+      const actual1to2 = Math.min(maxPatientsFor1to2, availableBeds);
       if (actual1to2 > 0) {
         capacityOptions.push(`${actual1to2} × 1:2 patient${actual1to2 > 1 ? 's' : ''}`);
       }
     }
     
+    // Option 3: All 1:3 patients  
     if (remainingCapacity >= 0.33) {
-      const nursesFor1to3 = Math.floor(remainingCapacity / 0.33);
-      const actual1to3 = Math.min(nursesFor1to3, availableBeds);
+      const maxPatientsFor1to3 = Math.floor(remainingCapacity / 0.33);
+      const actual1to3 = Math.min(maxPatientsFor1to3, availableBeds);
       if (actual1to3 > 0) {
         capacityOptions.push(`${actual1to3} × 1:3 patient${actual1to3 > 1 ? 's' : ''}`);
       }
     }
     
-    // Support for 1:4 and beyond
+    // Option 4: All 1:4 patients
     if (remainingCapacity >= 0.25) {
-      const nursesFor1to4 = Math.floor(remainingCapacity / 0.25);
-      const actual1to4 = Math.min(nursesFor1to4, availableBeds);
+      const maxPatientsFor1to4 = Math.floor(remainingCapacity / 0.25);
+      const actual1to4 = Math.min(maxPatientsFor1to4, availableBeds);
       if (actual1to4 > 0) {
         capacityOptions.push(`${actual1to4} × 1:4 patient${actual1to4 > 1 ? 's' : ''}`);
       }
@@ -853,6 +857,9 @@ const NursingCalculator = () => {
                     <div key={index} className="flex items-center text-sm">
                       <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-3"></span>
                       <span className="text-zinc-300">{capacity}</span>
+                      {index < pmAdmissionCapacity.length - 1 && (
+                        <span className="text-zinc-500 ml-2 text-xs font-bold">OR</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -868,6 +875,9 @@ const NursingCalculator = () => {
                     <div key={index} className="flex items-center text-sm">
                       <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-3"></span>
                       <span className="text-zinc-300">{capacity}</span>
+                      {index < nightAdmissionCapacity.length - 1 && (
+                        <span className="text-zinc-500 ml-2 text-xs font-bold">OR</span>
+                      )}
                     </div>
                   ))}
                 </div>
