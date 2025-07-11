@@ -348,59 +348,65 @@ const NursingCalculator = () => {
     const capacityOptions = [];
     const unassignedNurses = totalNurses - activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
     
-    // Find nurses with remaining capacity
-    const nursesWithCapacity = [];
-    activeAssignments.forEach(nurse => {
-      if (nurse.beds && nurse.beds.length > 0) {
-        const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-        const remainingLoad = 1.0 - currentLoad;
-        if (remainingLoad > 0.24) { // Minimum capacity for 1:4 patient
-          nursesWithCapacity.push(remainingLoad);
+    // Simulate actual admission capacity by testing each ratio type
+    // Key constraint: Each nurse can take exactly ONE additional patient
+    const simulateAdmissions = (newPatientRatio) => {
+      let possibleAdmissions = 0;
+      
+      // Unassigned nurses can each take 1 patient
+      possibleAdmissions += unassignedNurses;
+      
+      // Assigned nurses can each take 1 additional patient if it fits their capacity
+      activeAssignments.forEach(nurse => {
+        if (nurse.beds && nurse.beds.length > 0) {
+          const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
+          const newLoad = currentLoad + (1 / newPatientRatio);
+          
+          // Check if this nurse can take ONE more patient of this ratio
+          if (newLoad <= 1.0) {
+            possibleAdmissions += 1;
+          }
         }
-      }
-    });
-    
-    // Add unassigned nurses (each has 1.0 capacity)
-    for (let i = 0; i < unassignedNurses; i++) {
-      nursesWithCapacity.push(1.0);
-    }
-    
-    if (nursesWithCapacity.length === 0) {
-      return ['No capacity - all nurses at maximum workload'];
-    }
-    
-    // Calculate capacity for each ratio type
-    const testCapacity = (patientLoad) => {
-      const nurseCapacities = [...nursesWithCapacity].sort((a, b) => b - a); // Sort descending
-      let patients = 0;
+      });
       
-      for (let capacity of nurseCapacities) {
-        patients += Math.floor(capacity / patientLoad);
-      }
-      
-      return Math.min(patients, availableBeds);
+      return Math.min(possibleAdmissions, availableBeds);
     };
     
+    if (unassignedNurses === 0) {
+      // Check if any assigned nurse has capacity
+      const hasCapacity = activeAssignments.some(nurse => {
+        if (nurse.beds && nurse.beds.length > 0) {
+          const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
+          return currentLoad < 0.75; // Has reasonable remaining capacity
+        }
+        return false;
+      });
+      
+      if (!hasCapacity) {
+        return ['No capacity - all nurses at maximum workload'];
+      }
+    }
+    
     // Option 1: 1:1 patients
-    const capacity1to1 = testCapacity(1.0);
+    const capacity1to1 = simulateAdmissions(1);
     if (capacity1to1 > 0) {
       capacityOptions.push(`${capacity1to1} × 1:1 patient${capacity1to1 > 1 ? 's' : ''}`);
     }
     
     // Option 2: 1:2 patients
-    const capacity1to2 = testCapacity(0.5);
+    const capacity1to2 = simulateAdmissions(2);
     if (capacity1to2 > 0) {
       capacityOptions.push(`${capacity1to2} × 1:2 patient${capacity1to2 > 1 ? 's' : ''}`);
     }
     
     // Option 3: 1:3 patients
-    const capacity1to3 = testCapacity(0.33);
+    const capacity1to3 = simulateAdmissions(3);
     if (capacity1to3 > 0) {
       capacityOptions.push(`${capacity1to3} × 1:3 patient${capacity1to3 > 1 ? 's' : ''}`);
     }
     
     // Option 4: 1:4 patients
-    const capacity1to4 = testCapacity(0.25);
+    const capacity1to4 = simulateAdmissions(4);
     if (capacity1to4 > 0) {
       capacityOptions.push(`${capacity1to4} × 1:4 patient${capacity1to4 > 1 ? 's' : ''}`);
     }
