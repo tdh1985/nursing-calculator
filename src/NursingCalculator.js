@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const NursingCalculator = () => {
   const [beds, setBeds] = useState(
@@ -77,7 +77,7 @@ const NursingCalculator = () => {
     return totalHours;
   };
 
-  const calculateNurses = () => {
+  const calculateNurses = useCallback(() => {
     const assignments = [];
     let nurseId = 1;
     
@@ -245,7 +245,7 @@ const NursingCalculator = () => {
     const totalWithInCharge = baseNurses + (includeInCharge ? 1 : 0);
     setExpectedNursesPM(totalWithInCharge);
     setExpectedNursesNight(totalWithInCharge);
-  };
+  }, [beds, includeInCharge]);
 
   const updateBedRatio = (bedId, ratio) => {
     setBeds(beds.map(bed => 
@@ -392,7 +392,7 @@ const NursingCalculator = () => {
   
   useEffect(() => {
     calculateNurses();
-  }, [bedDataString, includeInCharge]);
+  }, [bedDataString, includeInCharge, calculateNurses]);
 
   const amNurses = parseInt(currentNursesAM) || 0;
   const totalHours = calculateTotalHours();
