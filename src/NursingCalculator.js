@@ -159,51 +159,80 @@ const NursingCalculator = () => {
       groups[key].push(bed);
     });
 
-    // Sort groups by patient count (1:1 first, then 1:2, etc.)
-    const sortedGroupKeys = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
+    // Groups are processed in priority order: 1:1, then 1:2, then 1:3
 
-    // Assign nurses optimally based on patient ratios
-    // A nurse can handle patients up to their maximum ratio capacity
-    const allBeds = [];
-    sortedGroupKeys.forEach(key => {
-      const patientCount = parseInt(key);
-      const bedsInGroup = groups[key];
-      bedsInGroup.forEach(bed => {
-        allBeds.push({...bed, maxPatients: patientCount});
-      });
+    // Use the original working logic from the user's code
+    const groupsCopy = {
+      '1': groups['1'] ? [...groups['1']] : [],
+      '2': groups['2'] ? [...groups['2']] : [],
+      '3': groups['3'] ? [...groups['3']] : []
+    };
+
+    // 1:1 patients each get their own nurse
+    groupsCopy['1'].forEach(bed => {
+      const nurse = {
+        id: nurseId++,
+        beds: [bed]
+      };
+      bed.nurseAssigned = nurse.id;
+      assignments.push(nurse);
     });
-    
-    // Sort beds by ratio (1:1 first, then 1:2, etc.) to prioritize high-acuity patients
-    allBeds.sort((a, b) => a.maxPatients - b.maxPatients);
-    
-    // Assign nurses optimally
-    while (allBeds.length > 0) {
+
+    // Group 1:2 patients (2 per nurse)
+    while (groupsCopy['2'].length >= 2) {
       const nurse = {
         id: nurseId++,
         beds: []
       };
+      for (let i = 0; i < 2; i++) {
+        const bed = groupsCopy['2'].shift();
+        bed.nurseAssigned = nurse.id;
+        nurse.beds.push(bed);
+      }
+      assignments.push(nurse);
+    }
+
+    // Group 1:3 patients (3 per nurse)
+    while (groupsCopy['3'].length >= 3) {
+      const nurse = {
+        id: nurseId++,
+        beds: []
+      };
+      for (let i = 0; i < 3; i++) {
+        const bed = groupsCopy['3'].shift();
+        bed.nurseAssigned = nurse.id;
+        nurse.beds.push(bed);
+      }
+      assignments.push(nurse);
+    }
+
+    // Handle remaining patients by assigning them to existing nurses with capacity
+    const remaining = [...groupsCopy['2'], ...groupsCopy['3']];
+    
+    remaining.forEach(bed => {
+      let assigned = false;
       
-      let nurseCapacity = 0;
-      let maxNurseRatio = 0;
-      
-      // Assign beds to this nurse up to their capacity
-      for (let i = allBeds.length - 1; i >= 0; i--) {
-        const bed = allBeds[i];
-        const bedPatients = bed.maxPatients;
+      for (let nurse of assignments) {
+        const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
+        const newLoad = currentLoad + (1 / bed.patientCount);
         
-        // Check if this nurse can handle this bed
-        if (nurseCapacity + bedPatients <= Math.max(maxNurseRatio, bedPatients)) {
-          // Assign this bed to the nurse
-          bed.nurseAssigned = nurse.id;
+        if (newLoad <= 1.0) {
           nurse.beds.push(bed);
-          nurseCapacity += bedPatients;
-          maxNurseRatio = Math.max(maxNurseRatio, bedPatients);
-          allBeds.splice(i, 1);
+          bed.nurseAssigned = nurse.id;
+          assigned = true;
+          break;
         }
       }
       
-      assignments.push(nurse);
-    }
+      if (!assigned) {
+        const nurse = {
+          id: nurseId++,
+          beds: [bed]
+        };
+        bed.nurseAssigned = nurse.id;
+        assignments.push(nurse);
+      }
+    });
 
     const updatedBeds = beds.map(bed => {
       const assignedBed = bedsWithRatios.find(b => b.id === bed.id);
