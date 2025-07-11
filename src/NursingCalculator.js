@@ -379,8 +379,8 @@ const NursingCalculator = () => {
 
   const amNurses = parseInt(currentNursesAM) || 0;
   const totalHours = calculateTotalHours();
-  // const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, nurseAssignments);
-  // const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, nurseAssignments);
+  const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, nurseAssignments);
+  const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, nurseAssignments);
   
   // Current state calculations
   const currentPatients = beds.filter(bed => 
@@ -851,6 +851,48 @@ const NursingCalculator = () => {
                 <span className="text-5xl font-black bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
                   {totalHours.toFixed(1)}h
                 </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Admission Capacity */}
+        {(pmAdmissionCapacity.length > 0 || nightAdmissionCapacity.length > 0) && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6">
+            <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center">
+              <span className="w-3 h-3 bg-green-400 rounded-full mr-3"></span>
+              Admission Capacity
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-6 rounded-xl">
+                <h3 className="font-bold text-orange-400 mb-4 text-sm uppercase tracking-wider flex items-center">
+                  <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                  PM Shift Capacity
+                </h3>
+                <div className="space-y-2">
+                  {pmAdmissionCapacity.map((capacity, index) => (
+                    <div key={index} className="flex items-center text-sm">
+                      <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-3"></span>
+                      <span className="text-zinc-300">{capacity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 p-6 rounded-xl">
+                <h3 className="font-bold text-purple-400 mb-4 text-sm uppercase tracking-wider flex items-center">
+                  <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                  Night Shift Capacity
+                </h3>
+                <div className="space-y-2">
+                  {nightAdmissionCapacity.map((capacity, index) => (
+                    <div key={index} className="flex items-center text-sm">
+                      <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-3"></span>
+                      <span className="text-zinc-300">{capacity}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
