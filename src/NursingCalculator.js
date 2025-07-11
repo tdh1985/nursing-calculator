@@ -349,23 +349,23 @@ const NursingCalculator = () => {
     const unassignedNurses = totalNurses - activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
     
     // Simulate actual admission capacity by testing each ratio type
-    // Key constraint: Each nurse can take exactly ONE additional patient
+    // Key constraint: Nurses can take multiple patients as long as total load ≤ 1.0
     const simulateAdmissions = (newPatientRatio) => {
       let possibleAdmissions = 0;
+      const patientLoad = 1 / newPatientRatio;
       
-      // Unassigned nurses can each take 1 patient
-      possibleAdmissions += unassignedNurses;
+      // Unassigned nurses can each take multiple patients of this ratio
+      possibleAdmissions += unassignedNurses * newPatientRatio;
       
-      // Assigned nurses can each take 1 additional patient if it fits their capacity
+      // Assigned nurses can take additional patients if they fit within capacity
       activeAssignments.forEach(nurse => {
         if (nurse.beds && nurse.beds.length > 0) {
           const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-          const newLoad = currentLoad + (1 / newPatientRatio);
+          const remainingCapacity = 1.0 - currentLoad;
           
-          // Check if this nurse can take ONE more patient of this ratio
-          if (newLoad <= 1.0) {
-            possibleAdmissions += 1;
-          }
+          // Calculate how many patients of this ratio can fit in remaining capacity
+          const additionalPatients = Math.floor(remainingCapacity / patientLoad);
+          possibleAdmissions += additionalPatients;
         }
       });
       
