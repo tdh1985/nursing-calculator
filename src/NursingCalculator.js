@@ -292,9 +292,9 @@ const NursingCalculator = () => {
       bed.ratio && parseRatio(bed.ratio) !== null && bed.status !== 'discharge' && bed.status !== 'toWard' && bed.status !== 'bedMove' && bed.status !== 'bedMoveWithRatio'
     ).length;
     
-    const plannedDischarges = beds.filter(bed => 
-      bed.ratio && parseRatio(bed.ratio) !== null && (bed.status === 'discharge' || bed.status === 'toWard')
-    ).length;
+    // const plannedDischarges = beds.filter(bed => 
+    //   bed.ratio && parseRatio(bed.ratio) !== null && (bed.status === 'discharge' || bed.status === 'toWard')
+    // ).length;
     
     const effectiveOccupiedBeds = currentOccupiedBeds;
     const availableBeds = 11 - effectiveOccupiedBeds;
@@ -379,8 +379,8 @@ const NursingCalculator = () => {
 
   const amNurses = parseInt(currentNursesAM) || 0;
   const totalHours = calculateTotalHours();
-  const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, nurseAssignments);
-  const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, nurseAssignments);
+  // const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, nurseAssignments);
+  // const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, nurseAssignments);
   
   // Current state calculations
   const currentPatients = beds.filter(bed => 
@@ -394,9 +394,9 @@ const NursingCalculator = () => {
   const comingInPatients = beds.filter(bed => 
     bed.ratio && parseRatio(bed.ratio) !== null && bed.status === 'comingIn'
   ).length;
-  const dischargePatients = beds.filter(bed => 
-    bed.ratio && parseRatio(bed.ratio) !== null && bed.status === 'discharge'
-  ).length;
+  // const dischargePatients = beds.filter(bed => 
+  //   bed.ratio && parseRatio(bed.ratio) !== null && bed.status === 'discharge'
+  // ).length;
   const turnoverBeds = beds.filter(bed => 
     bed.ratio && parseRatio(bed.ratio) !== null && bed.status === 'turnover'
   ).length;
