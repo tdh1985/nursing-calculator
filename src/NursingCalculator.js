@@ -374,7 +374,6 @@ const NursingCalculator = () => {
         
         // Unassigned nurses can take patients at any ratio
         if (unassignedNurses > 0 && remainingBeds > 0) {
-          const patientsPerUnassignedNurse = Math.min(ratio, remainingBeds);
           const nursesNeeded = Math.ceil(remainingBeds / ratio);
           const nursesAvailable = Math.min(nursesNeeded, unassignedNurses);
           const additionalPatients = Math.min(nursesAvailable * ratio, remainingBeds);
