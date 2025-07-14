@@ -20,7 +20,7 @@ const NursingCalculator = () => {
   const [includeAM515, setIncludeAM515] = useState(false);
   const [includeCNE, setIncludeCNE] = useState(false);
   const [cneHours, setCneHours] = useState('');
-  const [currentNursesAM, setCurrentNursesAM] = useState('');
+  const [expectedNursesAM, setExpectedNursesAM] = useState(0);
   const [expectedNursesPM, setExpectedNursesPM] = useState(0);
   const [expectedNursesNight, setExpectedNursesNight] = useState(0);
   const [viewMode, setViewMode] = useState('combined');
@@ -63,10 +63,9 @@ const NursingCalculator = () => {
   };
 
   const calculateTotalHours = () => {
-    const amNurses = parseInt(currentNursesAM) || 0;
     let totalHours = 0;
     
-    totalHours += amNurses * 8;
+    totalHours += expectedNursesAM * 8;
     totalHours += expectedNursesPM * 8;
     totalHours += expectedNursesNight * 10;
     
@@ -248,6 +247,7 @@ const NursingCalculator = () => {
     
     const baseNurses = assignments.length;
     const totalWithInCharge = baseNurses + (includeInCharge ? 1 : 0);
+    setExpectedNursesAM(totalWithInCharge);
     setExpectedNursesPM(totalWithInCharge);
     setExpectedNursesNight(totalWithInCharge);
   }, [beds, includeInCharge]);
@@ -344,74 +344,63 @@ const NursingCalculator = () => {
       })
     }));
 
-    // Calculate realistic admission capacity by simulating the assignment process
-    const capacityOptions = [];
-    const unassignedNurses = totalNurses - activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
-    
-    // Simulate actual admission capacity by testing each ratio type
-    // Key constraint: Nurses can take multiple patients as long as total load ≤ 1.0
-    const simulateAdmissions = (newPatientRatio) => {
-      let possibleAdmissions = 0;
-      const patientLoad = 1 / newPatientRatio;
+    // Calculate realistic admission capacity following nursing ratio rules
+    // Key rule: Nurses can only care for patients at ONE ratio level
+    const calculateDetailedCapacity = () => {
+      const detailedOptions = [];
+      const unassignedNurses = totalNurses - activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
       
-      // Unassigned nurses can each take multiple patients of this ratio
-      possibleAdmissions += unassignedNurses * newPatientRatio;
-      
-      // Assigned nurses can take additional patients if they fit within capacity
-      activeAssignments.forEach(nurse => {
-        if (nurse.beds && nurse.beds.length > 0) {
-          const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-          const remainingCapacity = 1.0 - currentLoad;
-          
-          // Calculate how many patients of this ratio can fit in remaining capacity
-          const additionalPatients = Math.floor(remainingCapacity / patientLoad);
-          possibleAdmissions += additionalPatients;
+      // For each ratio type, calculate how many can actually be admitted
+      [1, 2, 3, 4].forEach(ratio => {
+        let count = 0;
+        let remainingBeds = availableBeds;
+        
+        // Count how many nurses can take patients at this specific ratio
+        activeAssignments.forEach(nurse => {
+          if (nurse.beds && nurse.beds.length > 0) {
+            // Check if this nurse has patients at this ratio
+            const nurseRatio = nurse.beds[0].patientCount;
+            if (nurseRatio === ratio) {
+              // This nurse can only take more patients at the same ratio
+              const currentPatientCount = nurse.beds.length;
+              const additionalPatientsAllowed = ratio - currentPatientCount;
+              const additionalPatientsPossible = Math.min(additionalPatientsAllowed, remainingBeds);
+              count += additionalPatientsPossible;
+              remainingBeds -= additionalPatientsPossible;
+            }
+            // If nurse has different ratio, they can't take any patients at this ratio
+          }
+        });
+        
+        // Unassigned nurses can take patients at any ratio
+        if (unassignedNurses > 0 && remainingBeds > 0) {
+          const patientsPerUnassignedNurse = Math.min(ratio, remainingBeds);
+          const nursesNeeded = Math.ceil(remainingBeds / ratio);
+          const nursesAvailable = Math.min(nursesNeeded, unassignedNurses);
+          const additionalPatients = Math.min(nursesAvailable * ratio, remainingBeds);
+          count += additionalPatients;
+        }
+        
+        if (count > 0) {
+          detailedOptions.push({
+            ratio: ratio,
+            count: count,
+            text: `${count} × 1:${ratio} patient${count > 1 ? 's' : ''}`
+          });
         }
       });
       
-      return Math.min(possibleAdmissions, availableBeds);
+      return detailedOptions;
     };
     
-    if (unassignedNurses === 0) {
-      // Check if any assigned nurse has capacity
-      const hasCapacity = activeAssignments.some(nurse => {
-        if (nurse.beds && nurse.beds.length > 0) {
-          const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-          return currentLoad < 0.75; // Has reasonable remaining capacity
-        }
-        return false;
-      });
-      
-      if (!hasCapacity) {
-        return ['No capacity - all nurses at maximum workload'];
-      }
+    // Get detailed capacity options
+    const detailedCapacityOptions = calculateDetailedCapacity();
+    
+    if (detailedCapacityOptions.length === 0) {
+      return ['No capacity - all nurses at maximum workload'];
     }
     
-    // Option 1: 1:1 patients
-    const capacity1to1 = simulateAdmissions(1);
-    if (capacity1to1 > 0) {
-      capacityOptions.push(`${capacity1to1} × 1:1 patient${capacity1to1 > 1 ? 's' : ''}`);
-    }
-    
-    // Option 2: 1:2 patients
-    const capacity1to2 = simulateAdmissions(2);
-    if (capacity1to2 > 0) {
-      capacityOptions.push(`${capacity1to2} × 1:2 patient${capacity1to2 > 1 ? 's' : ''}`);
-    }
-    
-    // Option 3: 1:3 patients
-    const capacity1to3 = simulateAdmissions(3);
-    if (capacity1to3 > 0) {
-      capacityOptions.push(`${capacity1to3} × 1:3 patient${capacity1to3 > 1 ? 's' : ''}`);
-    }
-    
-    // Option 4: 1:4 patients
-    const capacity1to4 = simulateAdmissions(4);
-    if (capacity1to4 > 0) {
-      capacityOptions.push(`${capacity1to4} × 1:4 patient${capacity1to4 > 1 ? 's' : ''}`);
-    }
-
-    return capacityOptions.length > 0 ? capacityOptions : ['No capacity - all nurses at maximum workload'];
+    return detailedCapacityOptions.map(option => option.text);
   };
 
   const bedDataString = beds.map(b => `${b.ratio}:${b.status}:${b.newRatio}:${b.moveToBed}:${b.moveNewRatio}:${b.admissionAfterMove}`).join(',');
@@ -420,14 +409,13 @@ const NursingCalculator = () => {
     calculateNurses();
   }, [bedDataString, includeInCharge, calculateNurses]);
 
-  const amNurses = parseInt(currentNursesAM) || 0;
   const totalHours = calculateTotalHours();
   const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, nurseAssignments);
   const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, nurseAssignments);
   
   // Current state calculations
   const currentPatients = beds.filter(bed => 
-    bed.ratio && parseRatio(bed.ratio) !== null && (bed.status === 'current' || bed.status === 'toWard')
+    bed.ratio && parseRatio(bed.ratio) !== null && bed.status === 'current'
   ).length;
   const toWardPatients = beds.filter(bed => 
     bed.ratio && parseRatio(bed.ratio) !== null && bed.status === 'toWard'
@@ -445,7 +433,7 @@ const NursingCalculator = () => {
   ).length;
   
   const totalPatients = beds.filter(bed => bed.ratio && parseRatio(bed.ratio) !== null).length;
-  const remainingAfterWard = currentPatients - toWardPatients;
+  const remainingAfterWard = currentPatients;
   const expectedFinalPatients = remainingAfterWard + comingInPatients + turnoverBeds;
 
   return (
@@ -461,7 +449,7 @@ const NursingCalculator = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        {/* AM Shift Input */}
+        {/* AM Shift Display */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-full blur-3xl"></div>
           <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center relative z-10">
@@ -470,19 +458,13 @@ const NursingCalculator = () => {
           </h2>
           <div className="flex items-center gap-6 relative z-10">
             <div className="bg-zinc-800/50 backdrop-blur border border-zinc-700 p-6 rounded-xl flex-1 max-w-sm">
-              <label className="text-xs text-zinc-400 font-medium block mb-3 uppercase tracking-wider">AM Nurses (8hr)</label>
-              <input
-                type="number"
-                value={currentNursesAM}
-                onChange={(e) => setCurrentNursesAM(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg px-6 py-4 text-3xl font-bold text-cyan-400 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
-                placeholder="0"
-              />
+              <label className="text-xs text-zinc-400 font-medium block mb-3 uppercase tracking-wider">AM Nurses Required (8hr)</label>
+              <div className="text-4xl font-black text-cyan-400">{expectedNursesAM}</div>
             </div>
-            {amNurses > 0 && (
+            {expectedNursesAM > 0 && (
               <div className="bg-gradient-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 p-6 rounded-xl">
                 <p className="text-zinc-400 text-xs uppercase tracking-wider">Total Hours</p>
-                <p className="text-4xl font-black text-cyan-400">{amNurses * 8}</p>
+                <p className="text-4xl font-black text-cyan-400">{expectedNursesAM * 8}</p>
               </div>
             )}
           </div>
@@ -840,7 +822,7 @@ const NursingCalculator = () => {
         </div>
 
         {/* Results Section */}
-        {(amNurses > 0 || expectedNursesPM > 0 || totalPatients > 0) && (
+        {(expectedNursesAM > 0 || expectedNursesPM > 0 || totalPatients > 0) && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-full blur-3xl"></div>
             <h2 className="text-2xl font-bold mb-6 text-zinc-100 relative z-10">
@@ -853,8 +835,8 @@ const NursingCalculator = () => {
                   <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                   AM Shift
                 </h3>
-                <div className="text-4xl font-black text-blue-400">{amNurses}</div>
-                <div className="text-sm text-zinc-400 mt-1">× 8h = {amNurses * 8}h</div>
+                <div className="text-4xl font-black text-blue-400">{expectedNursesAM}</div>
+                <div className="text-sm text-zinc-400 mt-1">× 8h = {expectedNursesAM * 8}h</div>
               </div>
               
               <div className="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-6 rounded-xl">
