@@ -488,8 +488,11 @@ const NursingCalculator = () => {
         });
         
         if (options.length > 0) {
-          detailedOptions.push({
-            text: options.join(' OR ')
+          // Push each option as a separate item for line-by-line display
+          options.forEach(option => {
+            detailedOptions.push({
+              text: option
+            });
           });
         }
       }
@@ -606,50 +609,71 @@ const NursingCalculator = () => {
   const expectedFinalPatients = remainingAfterWard + comingInPatients + turnoverBeds;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Header */}
-      <div className="bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-b border-zinc-800">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400 text-center tracking-tight">
-            Nursing Calculator
-          </h1>
-          <p className="text-center text-zinc-400 mt-2 text-sm uppercase tracking-wider">Advanced Shift Planning System</p>
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Nursing Calculator</h1>
+                <p className="text-sm text-gray-500">Intelligent Shift Planning System</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">PRO</span>
+              <span className="text-sm text-gray-500">© 2025 Calvary Care - Critical Care Unit</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
         {/* AM Shift Display */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-full blur-3xl"></div>
-          <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center relative z-10">
-            <span className="w-3 h-3 bg-cyan-400 rounded-full mr-3 animate-pulse"></span>
-            Morning Shift
-          </h2>
-          <div className="flex items-center gap-6 relative z-10">
-            <div className="bg-zinc-800/50 backdrop-blur border border-zinc-700 p-6 rounded-xl flex-1 max-w-sm">
-              <label className="text-xs text-zinc-400 font-medium block mb-3 uppercase tracking-wider">AM Nurses Required (8hr)</label>
-              <div className="text-4xl font-black text-cyan-400">{expectedNursesAM}</div>
+        <div className="bg-white shadow-md rounded-2xl p-8 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              Morning Shift
+            </h2>
+            <span className="text-sm text-gray-500">0700 - 1500</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl border border-amber-200">
+              <label className="text-sm text-gray-600 font-medium block mb-2">Nurses Required</label>
+              <div className="text-4xl font-bold text-gray-900">{expectedNursesAM}</div>
+              <p className="text-sm text-gray-500 mt-1">8-hour shift</p>
             </div>
             {expectedNursesAM > 0 && (
-              <div className="bg-gradient-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 p-6 rounded-xl">
-                <p className="text-zinc-400 text-xs uppercase tracking-wider">Total Hours</p>
-                <p className="text-4xl font-black text-cyan-400">{expectedNursesAM * 8}</p>
+              <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <label className="text-sm text-gray-600 font-medium block mb-2">Total Hours</label>
+                <div className="text-4xl font-bold text-gray-900">{expectedNursesAM * 8}</div>
+                <p className="text-sm text-gray-500 mt-1">Staff hours</p>
               </div>
             )}
           </div>
         </div>
 
         {/* View Mode Toggle */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
+        <div className="bg-white shadow-md rounded-2xl p-4 mb-6">
           <div className="flex items-center justify-center gap-4">
-            <span className="text-zinc-400 text-sm font-medium uppercase tracking-wider">View Mode</span>
-            <div className="bg-zinc-800 rounded-full p-1 flex">
+            <span className="text-sm font-medium text-gray-700">View Mode</span>
+            <div className="bg-gray-100 rounded-full p-1 flex">
               <button
                 onClick={() => setViewMode('combined')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                   viewMode === 'combined' 
-                    ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25' 
-                    : 'text-zinc-400 hover:text-zinc-100'
+                    ? 'bg-white text-blue-600 shadow-md' 
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 Combined
@@ -658,8 +682,8 @@ const NursingCalculator = () => {
                 onClick={() => setViewMode('split')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                   viewMode === 'split' 
-                    ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg shadow-violet-500/25' 
-                    : 'text-zinc-400 hover:text-zinc-100'
+                    ? 'bg-white text-blue-600 shadow-md' 
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 Current → Expected
@@ -669,45 +693,49 @@ const NursingCalculator = () => {
         </div>
 
         {/* Bed Input Section */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6 relative overflow-hidden">
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-violet-500/10 to-transparent rounded-full blur-3xl"></div>
-          <h2 className="text-2xl font-bold mb-6 text-zinc-100 relative z-10">
+        <div className="bg-white shadow-md rounded-2xl p-8 mb-6">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mr-3 shadow-md">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
             {viewMode === 'split' ? 'Bed Status & Changes' : 'PM & Night Planning'}
           </h2>
           
           
           {viewMode === 'split' && (
-            <div className="mb-8 grid md:grid-cols-2 gap-4 relative z-10">
-              <div className="bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20 p-6 rounded-xl">
-                <h3 className="font-bold text-blue-400 mb-2 text-sm uppercase tracking-wider">Current</h3>
-                <p className="text-4xl font-black text-blue-400">{currentPatients}</p>
-                <p className="text-zinc-400 text-sm">patients now</p>
+            <div className="mb-8 grid md:grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-xl">
+                <h3 className="font-bold text-blue-700 mb-2 text-sm">Current Status</h3>
+                <p className="text-4xl font-bold text-gray-900">{currentPatients}</p>
+                <p className="text-gray-600 text-sm">patients now</p>
                 {toWardPatients > 0 && (
-                  <p className="text-orange-400 text-sm mt-2">-{toWardPatients} to ward</p>
+                  <p className="text-orange-600 text-sm mt-2 font-medium">-{toWardPatients} to ward</p>
                 )}
               </div>
-              <div className="bg-gradient-to-br from-green-500/10 to-transparent border border-green-500/20 p-6 rounded-xl">
-                <h3 className="font-bold text-green-400 mb-2 text-sm uppercase tracking-wider">Expected</h3>
-                <p className="text-4xl font-black text-green-400">{expectedFinalPatients}</p>
-                <p className="text-zinc-400 text-sm">final count</p>
-                <p className="text-violet-400 text-sm mt-2 font-medium">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-6 rounded-xl">
+                <h3 className="font-bold text-green-700 mb-2 text-sm">Expected Status</h3>
+                <p className="text-4xl font-bold text-gray-900">{expectedFinalPatients}</p>
+                <p className="text-gray-600 text-sm">final count</p>
+                <p className="text-indigo-600 text-sm mt-2 font-medium">
                   {expectedNursesPM} nurses needed
                 </p>
               </div>
             </div>
           )}
           
-          <div className="grid gap-3 md:grid-cols-2 relative z-10">
+          <div className="grid gap-4 md:grid-cols-2">
             {beds.map(bed => (
-              <div key={bed.id} className="bg-zinc-800/50 backdrop-blur border border-zinc-700 p-4 rounded-xl hover:border-zinc-600 transition-all">
+              <div key={bed.id} className="bg-gray-50 border border-gray-200 p-5 rounded-xl hover:shadow-md transition-all">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded-lg font-bold text-zinc-400 text-sm">
-                      B{bed.id}
+                    <span className="bg-white border border-gray-300 px-3 py-1.5 rounded-lg font-bold text-gray-700 text-sm shadow-sm">
+                      Bed {bed.id}
                     </span>
                     <input
                       type="text"
-                      className="flex-1 bg-zinc-900/50 border border-zinc-700 rounded-lg px-3 py-1.5 text-zinc-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all text-sm"
+                      className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                       value={bed.ratio}
                       onChange={(e) => {
                         if (validateRatio(e.target.value)) {
@@ -720,15 +748,15 @@ const NursingCalculator = () => {
                       <select
                         value={bed.status}
                         onChange={(e) => updateBedStatus(bed.id, e.target.value)}
-                        className={`bg-zinc-900/50 border rounded-lg px-2 py-1.5 text-xs font-medium transition-all ${
-                          bed.status === 'discharge' ? 'border-red-500/50 text-red-400' :
-                          bed.status === 'turnover' ? 'border-purple-500/50 text-purple-400' :
-                          bed.status === 'toWard' ? 'border-orange-500/50 text-orange-400' :
-                          bed.status === 'comingIn' ? 'border-green-500/50 text-green-400' :
-                          bed.status === 'changeRatio' ? 'border-blue-500/50 text-blue-400' :
-                          bed.status === 'bedMove' ? 'border-indigo-500/50 text-indigo-400' :
-                          bed.status === 'bedMoveWithRatio' ? 'border-pink-500/50 text-pink-400' :
-                          'border-zinc-700 text-zinc-400'
+                        className={`bg-white border rounded-lg px-2 py-1.5 text-xs font-medium transition-all ${
+                          bed.status === 'discharge' ? 'border-red-300 text-red-600 bg-red-50' :
+                          bed.status === 'turnover' ? 'border-purple-300 text-purple-600 bg-purple-50' :
+                          bed.status === 'toWard' ? 'border-orange-300 text-orange-600 bg-orange-50' :
+                          bed.status === 'comingIn' ? 'border-green-300 text-green-600 bg-green-50' :
+                          bed.status === 'changeRatio' ? 'border-blue-300 text-blue-600 bg-blue-50' :
+                          bed.status === 'bedMove' ? 'border-indigo-300 text-indigo-600 bg-indigo-50' :
+                          bed.status === 'bedMoveWithRatio' ? 'border-pink-300 text-pink-600 bg-pink-50' :
+                          'border-gray-300 text-gray-600'
                         }`}
                       >
                         <option value="current">Staying</option>
@@ -743,9 +771,9 @@ const NursingCalculator = () => {
                     )}
                     {bed.nurseAssigned && bed.status !== 'toWard' && bed.status !== 'discharge' && bed.status !== 'bedMove' && bed.status !== 'bedMoveWithRatio' && (
                       <span 
-                        className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r text-zinc-900"
+                        className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
                         style={{ 
-                          backgroundImage: `linear-gradient(135deg, hsl(${bed.nurseAssigned * 60}, 70%, 60%), hsl(${bed.nurseAssigned * 60 + 30}, 70%, 50%))`
+                          backgroundImage: `linear-gradient(135deg, hsl(${bed.nurseAssigned * 60}, 70%, 55%), hsl(${bed.nurseAssigned * 60 + 30}, 70%, 45%))`
                         }}
                       >
                         N{bed.nurseAssigned}
@@ -754,10 +782,10 @@ const NursingCalculator = () => {
                   </div>
                   {bed.status === 'turnover' && (
                     <div className="flex items-center gap-2 ml-12">
-                      <span className="text-xs text-purple-400">New:</span>
+                      <span className="text-xs text-purple-600 font-medium">New:</span>
                       <input
                         type="text"
-                        className="flex-1 bg-zinc-900/50 border border-purple-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100 focus:border-purple-500 focus:outline-none"
+                        className="flex-1 bg-white border border-purple-300 rounded-lg px-2 py-1 text-xs text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                         value={bed.newRatio}
                         onChange={(e) => {
                           if (validateRatio(e.target.value)) {
@@ -770,10 +798,10 @@ const NursingCalculator = () => {
                   )}
                   {bed.status === 'changeRatio' && (
                     <div className="flex items-center gap-2 ml-12">
-                      <span className="text-xs text-blue-400">New:</span>
+                      <span className="text-xs text-blue-600 font-medium">New:</span>
                       <input
                         type="text"
-                        className="flex-1 bg-zinc-900/50 border border-blue-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100 focus:border-blue-500 focus:outline-none"
+                        className="flex-1 bg-white border border-blue-300 rounded-lg px-2 py-1 text-xs text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         value={bed.newRatio}
                         onChange={(e) => {
                           if (validateRatio(e.target.value)) {
@@ -787,11 +815,11 @@ const NursingCalculator = () => {
                   {bed.status === 'bedMove' && (
                     <div className="flex flex-col gap-2 ml-12">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-indigo-400">To:</span>
+                        <span className="text-xs text-indigo-600 font-medium">To:</span>
                         <select
                           value={bed.moveToBed}
                           onChange={(e) => updateMoveToBed(bed.id, e.target.value)}
-                          className="bg-zinc-900/50 border border-indigo-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100"
+                          className="bg-white border border-indigo-300 rounded-lg px-2 py-1 text-xs text-gray-900"
                         >
                           <option value="">Select...</option>
                           {Array.from({ length: 11 }, (_, i) => i + 1)
@@ -802,10 +830,10 @@ const NursingCalculator = () => {
                         </select>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-indigo-400">New:</span>
+                        <span className="text-xs text-indigo-600 font-medium">New:</span>
                         <input
                           type="text"
-                          className="flex-1 bg-zinc-900/50 border border-indigo-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100"
+                          className="flex-1 bg-white border border-indigo-300 rounded-lg px-2 py-1 text-xs text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           value={bed.admissionAfterMove}
                           onChange={(e) => {
                             if (validateRatio(e.target.value)) {
@@ -820,11 +848,11 @@ const NursingCalculator = () => {
                   {bed.status === 'bedMoveWithRatio' && (
                     <div className="flex flex-col gap-2 ml-12">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-pink-400">To:</span>
+                        <span className="text-xs text-pink-600 font-medium">To:</span>
                         <select
                           value={bed.moveToBed}
                           onChange={(e) => updateMoveToBed(bed.id, e.target.value)}
-                          className="bg-zinc-900/50 border border-pink-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100"
+                          className="bg-white border border-pink-300 rounded-lg px-2 py-1 text-xs text-gray-900"
                         >
                           <option value="">Select...</option>
                           {Array.from({ length: 11 }, (_, i) => i + 1)
@@ -833,10 +861,10 @@ const NursingCalculator = () => {
                               <option key={num} value={num}>Bed {num}</option>
                             ))}
                         </select>
-                        <span className="text-xs text-pink-400">@</span>
+                        <span className="text-xs text-pink-600 font-medium">@</span>
                         <input
                           type="text"
-                          className="w-16 bg-zinc-900/50 border border-pink-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100"
+                          className="w-16 bg-white border border-pink-300 rounded-lg px-2 py-1 text-xs text-gray-900 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/20"
                           value={bed.moveNewRatio}
                           onChange={(e) => {
                             if (validateRatio(e.target.value)) {
@@ -847,10 +875,10 @@ const NursingCalculator = () => {
                         />
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-pink-400">New:</span>
+                        <span className="text-xs text-pink-600 font-medium">New:</span>
                         <input
                           type="text"
-                          className="flex-1 bg-zinc-900/50 border border-pink-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100"
+                          className="flex-1 bg-white border border-pink-300 rounded-lg px-2 py-1 text-xs text-gray-900 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/20"
                           value={bed.admissionAfterMove}
                           onChange={(e) => {
                             if (validateRatio(e.target.value)) {
@@ -864,10 +892,10 @@ const NursingCalculator = () => {
                   )}
                   {bed.status === 'toWard' && (
                     <div className="flex items-center gap-2 ml-12">
-                      <span className="text-xs text-orange-400">New Admission:</span>
+                      <span className="text-xs text-orange-600 font-medium">New Admission:</span>
                       <input
                         type="text"
-                        className="flex-1 bg-zinc-900/50 border border-orange-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100 focus:border-orange-500 focus:outline-none"
+                        className="flex-1 bg-white border border-orange-300 rounded-lg px-2 py-1 text-xs text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                         value={bed.newAdmissionAfterWard}
                         onChange={(e) => {
                           if (validateRatio(e.target.value)) {
@@ -884,9 +912,9 @@ const NursingCalculator = () => {
           </div>
           
           {/* Bed Occupancy Visual */}
-          <div className="mt-6 bg-zinc-800/30 border border-zinc-700 p-4 rounded-xl relative z-10">
+          <div className="mt-6 bg-gray-50 border border-gray-200 p-4 rounded-xl">
             <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider mr-3">Status</span>
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider mr-3">Bed Overview</span>
               {beds.map(bed => {
                 const isOccupied = bed.ratio && parseRatio(bed.ratio) !== null;
                 const isDischarged = bed.status === 'discharge';
@@ -900,16 +928,16 @@ const NursingCalculator = () => {
                 return (
                   <div
                     key={bed.id}
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all border ${
-                      !isOccupied ? 'bg-zinc-900 border-zinc-700 text-zinc-600' :
-                      isDischarged ? 'bg-red-500/20 border-red-500/50 text-red-400' :
-                      isToWard ? 'bg-orange-500/20 border-orange-500/50 text-orange-400' :
-                      isTurnover ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' :
-                      isAdmission ? 'bg-green-500/20 border-green-500/50 text-green-400' :
-                      isChangeRatio ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' :
-                      isBedMove ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400' :
-                      isBedMoveWithRatio ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' :
-                      'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
+                    className={`w-12 h-12 rounded-lg flex items-center justify-center text-sm font-bold transition-all shadow-sm border-2 ${
+                      !isOccupied ? 'bg-white border-gray-300 text-gray-400' :
+                      isDischarged ? 'bg-red-100 border-red-300 text-red-700' :
+                      isToWard ? 'bg-orange-100 border-orange-300 text-orange-700' :
+                      isTurnover ? 'bg-purple-100 border-purple-300 text-purple-700' :
+                      isAdmission ? 'bg-green-100 border-green-300 text-green-700' :
+                      isChangeRatio ? 'bg-blue-100 border-blue-300 text-blue-700' :
+                      isBedMove ? 'bg-indigo-100 border-indigo-300 text-indigo-700' :
+                      isBedMoveWithRatio ? 'bg-pink-100 border-pink-300 text-pink-700' :
+                      'bg-blue-50 border-blue-300 text-blue-700'
                     }`}
                     title={
                       !isOccupied ? `Bed ${bed.id}: Empty` :
@@ -933,54 +961,58 @@ const NursingCalculator = () => {
         </div>
 
         {/* Additional Staff Section */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6">
-          <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center">
-            <span className="w-3 h-3 bg-violet-400 rounded-full mr-3"></span>
+        <div className="bg-white shadow-md rounded-2xl p-8 mb-6">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-600 rounded-xl flex items-center justify-center mr-3 shadow-md">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
             Additional Staff
           </h2>
-          <div className="space-y-3">
-            <label className="flex items-center gap-4 p-4 bg-zinc-800/30 border border-zinc-700 rounded-xl hover:border-zinc-600 transition-all cursor-pointer">
+          <div className="space-y-4">
+            <label className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-all cursor-pointer">
               <input
                 type="checkbox"
                 checked={includeInCharge}
                 onChange={(e) => setIncludeInCharge(e.target.checked)}
-                className="w-5 h-5 text-cyan-500 bg-zinc-800 border-zinc-600 rounded focus:ring-cyan-500"
+                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
               />
-              <span className="font-medium text-zinc-300">In-Charge Nurse</span>
-              <span className="text-xs text-zinc-500 ml-auto">+1 nurse PM/Night</span>
+              <span className="font-medium text-gray-800">In-Charge Nurse</span>
+              <span className="text-sm text-gray-500 ml-auto">+1 nurse PM/Night</span>
             </label>
             
-            <label className="flex items-center gap-4 p-4 bg-zinc-800/30 border border-zinc-700 rounded-xl hover:border-zinc-600 transition-all cursor-pointer">
+            <label className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-all cursor-pointer">
               <input
                 type="checkbox"
                 checked={includeWardClerk}
                 onChange={(e) => setIncludeWardClerk(e.target.checked)}
-                className="w-5 h-5 text-cyan-500 bg-zinc-800 border-zinc-600 rounded focus:ring-cyan-500"
+                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
               />
-              <span className="font-medium text-zinc-300">Ward Clerk</span>
-              <span className="text-xs text-zinc-500 ml-auto">+7.5 hours</span>
+              <span className="font-medium text-gray-800">Ward Clerk</span>
+              <span className="text-sm text-gray-500 ml-auto">+7.5 hours</span>
             </label>
             
-            <label className="flex items-center gap-4 p-4 bg-zinc-800/30 border border-zinc-700 rounded-xl hover:border-zinc-600 transition-all cursor-pointer">
+            <label className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-all cursor-pointer">
               <input
                 type="checkbox"
                 checked={includeAM515}
                 onChange={(e) => setIncludeAM515(e.target.checked)}
-                className="w-5 h-5 text-cyan-500 bg-zinc-800 border-zinc-600 rounded focus:ring-cyan-500"
+                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
               />
-              <span className="font-medium text-zinc-300">AM 515</span>
-              <span className="text-xs text-zinc-500 ml-auto">+8 hours</span>
+              <span className="font-medium text-gray-800">AM 515</span>
+              <span className="text-sm text-gray-500 ml-auto">+8 hours</span>
             </label>
             
-            <div className="flex items-center gap-4 p-4 bg-zinc-800/30 border border-zinc-700 rounded-xl">
+            <div className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
               <label className="flex items-center gap-4 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={includeCNE}
                   onChange={(e) => setIncludeCNE(e.target.checked)}
-                  className="w-5 h-5 text-cyan-500 bg-zinc-800 border-zinc-600 rounded focus:ring-cyan-500"
+                  className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="font-medium text-zinc-300">CNE</span>
+                <span className="font-medium text-gray-800">CNE</span>
               </label>
               {includeCNE && (
                 <>
@@ -993,11 +1025,11 @@ const NursingCalculator = () => {
                       }
                     }}
                     placeholder="1100-2100"
-                    className="bg-zinc-900/50 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:border-cyan-500 focus:outline-none ml-auto"
+                    className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 ml-auto"
                   />
                   {cneHours && calculateHoursFromRange(cneHours) > 0 && (
-                    <span className="text-xs text-zinc-500">
-                      {calculateHoursFromRange(cneHours).toFixed(1)}h
+                    <span className="text-sm text-gray-500">
+                      +{calculateHoursFromRange(cneHours).toFixed(1)}h
                     </span>
                   )}
                 </>
@@ -1008,48 +1040,58 @@ const NursingCalculator = () => {
 
         {/* Results Section */}
         {(expectedNursesAM > 0 || expectedNursesPM > 0 || totalPatients > 0) && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-full blur-3xl"></div>
-            <h2 className="text-2xl font-bold mb-6 text-zinc-100 relative z-10">
+          <div className="bg-white shadow-md rounded-2xl p-8 mb-6">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
               24-Hour Summary
             </h2>
             
-            <div className="grid md:grid-cols-3 gap-4 mb-8 relative z-10">
-              <div className="bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20 p-6 rounded-xl">
-                <h3 className="font-bold text-blue-400 mb-3 text-sm uppercase tracking-wider flex items-center">
-                  <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 p-6 rounded-xl">
+                <h3 className="font-bold text-amber-700 mb-3 text-sm flex items-center">
+                  <svg className="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
                   AM Shift
                 </h3>
-                <div className="text-4xl font-black text-blue-400">{expectedNursesAM}</div>
-                <div className="text-sm text-zinc-400 mt-1">× 8h = {expectedNursesAM * 8}h</div>
+                <div className="text-4xl font-bold text-gray-900">{expectedNursesAM}</div>
+                <div className="text-sm text-gray-600 mt-1">× 8h = {expectedNursesAM * 8}h</div>
               </div>
               
-              <div className="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-6 rounded-xl">
-                <h3 className="font-bold text-orange-400 mb-3 text-sm uppercase tracking-wider flex items-center">
-                  <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-xl">
+                <h3 className="font-bold text-blue-700 mb-3 text-sm flex items-center">
+                  <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+                  </svg>
                   PM Shift
                 </h3>
-                <div className="text-4xl font-black text-orange-400">{expectedNursesPM}</div>
-                <div className="text-sm text-zinc-400 mt-1">× 8h = {expectedNursesPM * 8}h</div>
-                {includeInCharge && <div className="text-xs text-zinc-500 mt-1">(inc. in-charge)</div>}
+                <div className="text-4xl font-bold text-gray-900">{expectedNursesPM}</div>
+                <div className="text-sm text-gray-600 mt-1">× 8h = {expectedNursesPM * 8}h</div>
+                {includeInCharge && <div className="text-xs text-gray-500 mt-1">(includes in-charge)</div>}
               </div>
               
-              <div className="bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 p-6 rounded-xl">
-                <h3 className="font-bold text-purple-400 mb-3 text-sm uppercase tracking-wider flex items-center">
-                  <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 p-6 rounded-xl">
+                <h3 className="font-bold text-purple-700 mb-3 text-sm flex items-center">
+                  <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
                   Night Shift
                 </h3>
-                <div className="text-4xl font-black text-purple-400">{expectedNursesNight}</div>
-                <div className="text-sm text-zinc-400 mt-1">× 10h = {expectedNursesNight * 10}h</div>
-                {includeInCharge && <div className="text-xs text-zinc-500 mt-1">(inc. in-charge)</div>}
+                <div className="text-4xl font-bold text-gray-900">{expectedNursesNight}</div>
+                <div className="text-sm text-gray-600 mt-1">× 10h = {expectedNursesNight * 10}h</div>
+                {includeInCharge && <div className="text-xs text-gray-500 mt-1">(includes in-charge)</div>}
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 p-6 rounded-xl relative z-10">
-              <h3 className="font-bold mb-4 text-zinc-100 text-lg">Total Requirement</h3>
+            <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-300 p-6 rounded-xl">
+              <h3 className="font-bold mb-4 text-gray-800 text-lg">Total Requirement</h3>
               <div className="flex justify-between items-baseline">
-                <span className="text-zinc-400">24-hour total:</span>
-                <span className="text-5xl font-black bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
+                <span className="text-gray-600">24-hour total:</span>
+                <span className="text-5xl font-bold text-gray-900">
                   {totalHours.toFixed(1)}h
                 </span>
               </div>
@@ -1059,79 +1101,70 @@ const NursingCalculator = () => {
 
         {/* Admission Capacity */}
         {(pmAdmissionCapacity.length > 0 || nightAdmissionCapacity.length > 0) && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-full blur-3xl"></div>
-            <div className="relative z-10">
-              <h2 className="text-2xl font-bold mb-8 text-zinc-100 flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-4">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </div>
-                <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                  Admission Capacity
-                </span>
-              </h2>
-              
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="group">
-                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/50 transition-all duration-300">
-                    <div className="flex items-center mb-6">
-                      <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-slate-100 text-lg">PM Shift</h3>
-                    </div>
-                    <div className="space-y-4">
-                      {pmAdmissionCapacity.map((capacity, index) => (
-                        <div key={index}>
-                          <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/30">
-                            <span className="text-slate-200 font-medium">{capacity}</span>
-                            <div className="w-2 h-2 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full"></div>
-                          </div>
-                          {index < pmAdmissionCapacity.length - 1 && (
-                            <div className="flex items-center justify-center py-2">
-                              <div className="bg-slate-700/50 px-3 py-1 rounded-full">
-                                <span className="text-slate-400 text-xs font-bold tracking-wider">OR</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+          <div className="bg-white shadow-md rounded-2xl p-8 mb-6">
+            <h2 className="text-2xl font-bold mb-8 text-gray-800 flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-green-600 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              Admission Capacity
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6">
+                <div className="flex items-center mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+                    </svg>
                   </div>
+                  <h3 className="font-semibold text-gray-800 text-lg">PM Shift</h3>
                 </div>
+                <div className="space-y-3">
+                  {pmAdmissionCapacity.map((capacity, index) => (
+                    <div key={index}>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-blue-200">
+                        <span className="text-gray-700 font-medium">{capacity}</span>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      </div>
+                      {index < pmAdmissionCapacity.length - 1 && (
+                        <div className="flex items-center justify-center py-2">
+                          <div className="bg-blue-100 px-3 py-1 rounded-full">
+                            <span className="text-blue-600 text-xs font-bold tracking-wider">OR</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
                 
-                <div className="group">
-                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-slate-600/50 transition-all duration-300">
-                    <div className="flex items-center mb-6">
-                      <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-slate-100 text-lg">Night Shift</h3>
-                    </div>
-                    <div className="space-y-4">
-                      {nightAdmissionCapacity.map((capacity, index) => (
-                        <div key={index}>
-                          <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/30">
-                            <span className="text-slate-200 font-medium">{capacity}</span>
-                            <div className="w-2 h-2 bg-gradient-to-br from-violet-400 to-purple-400 rounded-full"></div>
-                          </div>
-                          {index < nightAdmissionCapacity.length - 1 && (
-                            <div className="flex items-center justify-center py-2">
-                              <div className="bg-slate-700/50 px-3 py-1 rounded-full">
-                                <span className="text-slate-400 text-xs font-bold tracking-wider">OR</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 rounded-2xl p-6">
+                <div className="flex items-center mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-violet-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
                   </div>
+                  <h3 className="font-semibold text-gray-800 text-lg">Night Shift</h3>
+                </div>
+                <div className="space-y-3">
+                  {nightAdmissionCapacity.map((capacity, index) => (
+                    <div key={index}>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-purple-200">
+                        <span className="text-gray-700 font-medium">{capacity}</span>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      </div>
+                      {index < nightAdmissionCapacity.length - 1 && (
+                        <div className="flex items-center justify-center py-2">
+                          <div className="bg-purple-100 px-3 py-1 rounded-full">
+                            <span className="text-purple-600 text-xs font-bold tracking-wider">OR</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1140,8 +1173,15 @@ const NursingCalculator = () => {
 
         {/* Nurse Assignments */}
         {nurseAssignments.length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold mb-6 text-zinc-100">PM & Night Assignments</h2>
+          <div className="bg-white shadow-md rounded-2xl p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              Nurse Assignments
+            </h2>
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {nurseAssignments.map(nurse => {
@@ -1149,14 +1189,14 @@ const NursingCalculator = () => {
                 return (
                   <div 
                     key={nurse.id} 
-                    className="bg-zinc-800/50 backdrop-blur border border-zinc-700 p-5 rounded-xl hover:border-zinc-600 transition-all"
+                    className="bg-gray-50 border border-gray-200 p-5 rounded-xl hover:shadow-md transition-all"
                   >
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="font-bold text-lg text-zinc-100">Nurse {nurse.id}</h3>
+                      <h3 className="font-bold text-lg text-gray-800">Nurse {nurse.id}</h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        workload >= 0.9 ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 
-                        workload >= 0.7 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' : 
-                        'bg-green-500/20 text-green-400 border border-green-500/50'
+                        workload >= 0.9 ? 'bg-red-100 text-red-600 border border-red-300' : 
+                        workload >= 0.7 ? 'bg-yellow-100 text-yellow-600 border border-yellow-300' : 
+                        'bg-green-100 text-green-600 border border-green-300'
                       }`}>
                         {(workload * 100).toFixed(0)}%
                       </span>
@@ -1168,13 +1208,13 @@ const NursingCalculator = () => {
                           ? parseRatio(actualBed.newRatio) 
                           : bed.patientCount;
                         return (
-                          <p key={bed.id} className="text-zinc-400 text-sm flex items-center">
-                            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-2"></span>
+                          <p key={bed.id} className="text-gray-600 text-sm flex items-center">
+                            <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                             Bed {bed.id} 
-                            <span className="text-zinc-500 ml-2">
-                              1:{displayRatio}
-                              {actualBed?.status === 'turnover' && ' [new]'}
-                              {actualBed?.status === 'comingIn' && ' [adm]'}
+                            <span className="text-gray-500 ml-2">
+                              (1:{displayRatio})
+                              {actualBed?.status === 'turnover' && ' [new patient]'}
+                              {actualBed?.status === 'comingIn' && ' [admission]'}
                             </span>
                           </p>
                         );
@@ -1185,25 +1225,25 @@ const NursingCalculator = () => {
               })}
               
               {includeInCharge && (
-                <div className="bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/20 p-5 rounded-xl">
+                <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 p-5 rounded-xl">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg text-violet-400">In-Charge</h3>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-violet-500/20 text-violet-400 border border-violet-500/50">
-                      Lead
+                    <h3 className="font-bold text-lg text-purple-700">In-Charge Nurse</h3>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-600 border border-purple-300">
+                      Leadership
                     </span>
                   </div>
-                  <div className="space-y-2 text-violet-400/80 text-sm">
+                  <div className="space-y-2 text-purple-600 text-sm">
                     <p className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-violet-400 rounded-full mr-2"></span>
-                      Supervision
+                      <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                      Unit Supervision
                     </p>
                     <p className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-violet-400 rounded-full mr-2"></span>
-                      Coordination
+                      <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                      Staff Coordination
                     </p>
                     <p className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-violet-400 rounded-full mr-2"></span>
-                      Emergency
+                      <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                      Emergency Response
                     </p>
                   </div>
                 </div>
