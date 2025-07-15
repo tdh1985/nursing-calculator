@@ -16,6 +16,7 @@ const NursingCalculator = () => {
   );
   
   const [nurseAssignments, setNurseAssignments] = useState([]);
+  const [pmNightAssignments, setPmNightAssignments] = useState([]);
   const [includeInCharge, setIncludeInCharge] = useState(true);
   const [includeWardClerk, setIncludeWardClerk] = useState(false);
   const [includeAM515, setIncludeAM515] = useState(false);
@@ -340,6 +341,9 @@ const NursingCalculator = () => {
     const pmNightTotalWithInCharge = pmNightBaseNurses + (includeInCharge ? 1 : 0);
     setExpectedNursesPM(pmNightTotalWithInCharge);
     setExpectedNursesNight(pmNightTotalWithInCharge);
+    
+    // Store PM/Night assignments for admission capacity calculation
+    setPmNightAssignments(pmNightAssignments);
   }, [beds, includeInCharge]);
 
   const updateBedRatio = (bedId, ratio) => {
@@ -405,11 +409,11 @@ const NursingCalculator = () => {
     return text === '' || /^[0-9-]*$/.test(text);
   };
 
-  const calculateAdmissionCapacity = (nurses, currentAssignments) => {
+  const calculateAdmissionCapacity = (nurses, currentAssignments, bedsConfig = beds) => {
     const totalNurses = nurses - (includeInCharge ? 1 : 0);
     if (totalNurses <= 0) return ['No capacity - no bedside nurses available'];
 
-    const currentOccupiedBeds = beds.filter(bed => 
+    const currentOccupiedBeds = bedsConfig.filter(bed => 
       bed.ratio && parseRatio(bed.ratio) !== null && bed.status !== 'discharge' && bed.status !== 'toWard' && bed.status !== 'bedMove' && bed.status !== 'bedMoveWithRatio'
     ).length;
     
@@ -427,10 +431,10 @@ const NursingCalculator = () => {
     const activeAssignments = currentAssignments.map(nurse => ({
       ...nurse,
       beds: nurse.beds.filter(bed => {
-        const actualBed = beds.find(b => b.id === bed.id);
+        const actualBed = bedsConfig.find(b => b.id === bed.id);
         return actualBed && actualBed.status !== 'discharge' && actualBed.status !== 'toWard' && actualBed.status !== 'bedMove' && actualBed.status !== 'bedMoveWithRatio';
       }).map(bed => {
-        const actualBed = beds.find(b => b.id === bed.id);
+        const actualBed = bedsConfig.find(b => b.id === bed.id);
         if (actualBed && actualBed.status === 'turnover' && actualBed.newRatio) {
           const newPatientCount = parseRatio(actualBed.newRatio);
           if (newPatientCount) {
@@ -506,8 +510,31 @@ const NursingCalculator = () => {
   }, [bedDataString, includeInCharge, calculateNurses]);
 
   const totalHours = calculateTotalHours();
-  const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, nurseAssignments);
-  const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, nurseAssignments);
+  
+  // Create PM/Night bed configuration for admission capacity calculation
+  const pmNightBedsConfig = beds.map(bed => {
+    // If patient is going to ward and there's a new admission
+    if (bed.status === 'toWard' && bed.newAdmissionAfterWard) {
+      return {
+        ...bed,
+        ratio: bed.newAdmissionAfterWard,
+        status: 'current' // Treat as current for PM/Night
+      };
+    }
+    // If patient is going to ward but no new admission, bed becomes empty
+    if (bed.status === 'toWard') {
+      return {
+        ...bed,
+        ratio: '',
+        status: 'current'
+      };
+    }
+    // Keep all other beds as they are
+    return bed;
+  });
+  
+  const pmAdmissionCapacity = calculateAdmissionCapacity(expectedNursesPM, pmNightAssignments, pmNightBedsConfig);
+  const nightAdmissionCapacity = calculateAdmissionCapacity(expectedNursesNight, pmNightAssignments, pmNightBedsConfig);
   
   // Current state calculations
   const currentPatients = beds.filter(bed => 
