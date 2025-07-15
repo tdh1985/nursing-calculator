@@ -10,6 +10,7 @@ const NursingCalculator = () => {
       moveToBed: '',
       moveNewRatio: '',
       admissionAfterMove: '',
+      newAdmissionAfterWard: '',
       nurseAssigned: null
     }))
   );
@@ -80,9 +81,10 @@ const NursingCalculator = () => {
     const assignments = [];
     let nurseId = 1;
     
-    // First, handle bed moves
+    // First, handle bed moves and ward transfers
     const bedMoveMap = {};
     const newAdmissionsAfterMove = {};
+    const wardTransferBeds = [];
     
     beds.forEach(bed => {
       if ((bed.status === 'bedMove' || bed.status === 'bedMoveWithRatio') && bed.moveToBed) {
@@ -99,6 +101,11 @@ const NursingCalculator = () => {
             newAdmissionsAfterMove[bed.id] = bed.admissionAfterMove;
           }
         }
+      }
+      
+      // Track beds with ward transfers
+      if (bed.status === 'toWard' && bed.ratio && parseRatio(bed.ratio) !== null) {
+        wardTransferBeds.push(bed);
       }
     });
     
@@ -245,11 +252,94 @@ const NursingCalculator = () => {
     setBeds(updatedBeds);
     setNurseAssignments(assignments);
     
+    // Calculate nurses for different shifts
+    // AM shift: includes current patients and those going to ward
     const baseNurses = assignments.length;
-    const totalWithInCharge = baseNurses + (includeInCharge ? 1 : 0);
-    setExpectedNursesAM(totalWithInCharge);
-    setExpectedNursesPM(totalWithInCharge);
-    setExpectedNursesNight(totalWithInCharge);
+    const amTotalWithInCharge = baseNurses + (includeInCharge ? 1 : 0);
+    setExpectedNursesAM(amTotalWithInCharge);
+    
+    // For PM/Night shifts, we need to recalculate based on:
+    // 1. Removing patients going to ward
+    // 2. Adding new admissions after ward transfers
+    // 3. Keeping all other patient movements
+    
+    // Build PM/Night bed configuration
+    const pmNightBeds = beds.map(bed => {
+      // If patient is going to ward and there's a new admission
+      if (bed.status === 'toWard' && bed.newAdmissionAfterWard) {
+        return {
+          ...bed,
+          ratio: bed.newAdmissionAfterWard,
+          status: 'current' // Treat as current for PM/Night
+        };
+      }
+      // If patient is going to ward but no new admission, bed becomes empty
+      if (bed.status === 'toWard') {
+        return {
+          ...bed,
+          ratio: '',
+          status: 'current'
+        };
+      }
+      // Keep all other beds as they are
+      return bed;
+    });
+    
+    // Calculate PM/Night nurses using the same algorithm
+    const pmNightAssignments = [];
+    let pmNurseId = 1;
+    
+    // Process PM/Night beds through the same logic
+    const pmBedsWithRatios = pmNightBeds
+      .filter(bed => bed.ratio && parseRatio(bed.ratio) !== null && bed.status !== 'discharge')
+      .map(bed => ({
+        ...bed,
+        patientCount: parseRatio(bed.ratio),
+        nurseAssigned: null
+      }));
+    
+    const pmGroups = {
+      '1': pmBedsWithRatios.filter(bed => bed.patientCount === 1),
+      '2': pmBedsWithRatios.filter(bed => bed.patientCount === 2),
+      '3': pmBedsWithRatios.filter(bed => bed.patientCount === 3)
+    };
+    
+    // Assign 1:1 patients
+    pmGroups['1'].forEach(bed => {
+      pmNightAssignments.push({ id: pmNurseId++, beds: [bed] });
+    });
+    
+    // Assign 1:2 patients (2 per nurse)
+    const pm2PatientBeds = [...pmGroups['2']];
+    while (pm2PatientBeds.length >= 2) {
+      pmNightAssignments.push({
+        id: pmNurseId++,
+        beds: [pm2PatientBeds.shift(), pm2PatientBeds.shift()]
+      });
+    }
+    
+    // Assign 1:3 patients (3 per nurse)
+    const pm3PatientBeds = [...pmGroups['3']];
+    while (pm3PatientBeds.length >= 3) {
+      pmNightAssignments.push({
+        id: pmNurseId++,
+        beds: [pm3PatientBeds.shift(), pm3PatientBeds.shift(), pm3PatientBeds.shift()]
+      });
+    }
+    
+    // Handle remaining beds
+    const pmRemainingBeds = [...pm2PatientBeds, ...pm3PatientBeds];
+    if (pmRemainingBeds.length > 0) {
+      pmNightAssignments.push({
+        id: pmNurseId++,
+        beds: pmRemainingBeds
+      });
+    }
+    
+    const pmNightBaseNurses = pmNightAssignments.length;
+    const pmNightTotalWithInCharge = pmNightBaseNurses + (includeInCharge ? 1 : 0);
+    setExpectedNursesPM(pmNightTotalWithInCharge);
+    setExpectedNursesNight(pmNightTotalWithInCharge);
   }, [beds, includeInCharge]);
 
   const updateBedRatio = (bedId, ratio) => {
@@ -274,7 +364,8 @@ const NursingCalculator = () => {
         newRatio: (status !== 'turnover' && status !== 'changeRatio') ? '' : bed.newRatio,
         moveToBed: (status !== 'bedMove' && status !== 'bedMoveWithRatio') ? '' : bed.moveToBed,
         moveNewRatio: status !== 'bedMoveWithRatio' ? '' : bed.moveNewRatio,
-        admissionAfterMove: (status !== 'bedMove' && status !== 'bedMoveWithRatio') ? '' : bed.admissionAfterMove
+        admissionAfterMove: (status !== 'bedMove' && status !== 'bedMoveWithRatio') ? '' : bed.admissionAfterMove,
+        newAdmissionAfterWard: status !== 'toWard' ? '' : bed.newAdmissionAfterWard
       } : bed
     ));
   };
@@ -294,6 +385,12 @@ const NursingCalculator = () => {
   const updateAdmissionAfterMove = (bedId, admissionAfterMove) => {
     setBeds(beds.map(bed => 
       bed.id === bedId ? { ...bed, admissionAfterMove } : bed
+    ));
+  };
+
+  const updateNewAdmissionAfterWard = (bedId, newAdmissionAfterWard) => {
+    setBeds(beds.map(bed => 
+      bed.id === bedId ? { ...bed, newAdmissionAfterWard } : bed
     ));
   };
 
@@ -402,7 +499,7 @@ const NursingCalculator = () => {
     return detailedCapacityOptions.map(option => option.text);
   };
 
-  const bedDataString = beds.map(b => `${b.ratio}:${b.status}:${b.newRatio}:${b.moveToBed}:${b.moveNewRatio}:${b.admissionAfterMove}`).join(',');
+  const bedDataString = beds.map(b => `${b.ratio}:${b.status}:${b.newRatio}:${b.moveToBed}:${b.moveNewRatio}:${b.admissionAfterMove}:${b.newAdmissionAfterWard}`).join(',');
   
   useEffect(() => {
     calculateNurses();
@@ -692,6 +789,22 @@ const NursingCalculator = () => {
                       </div>
                     </div>
                   )}
+                  {bed.status === 'toWard' && (
+                    <div className="flex items-center gap-2 ml-12">
+                      <span className="text-xs text-orange-400">New Admission:</span>
+                      <input
+                        type="text"
+                        className="flex-1 bg-zinc-900/50 border border-orange-500/30 rounded-lg px-2 py-1 text-xs text-zinc-100 focus:border-orange-500 focus:outline-none"
+                        value={bed.newAdmissionAfterWard}
+                        onChange={(e) => {
+                          if (validateRatio(e.target.value)) {
+                            updateNewAdmissionAfterWard(bed.id, e.target.value);
+                          }
+                        }}
+                        placeholder="PM/Night patient (e.g., 1:2)"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -729,7 +842,7 @@ const NursingCalculator = () => {
                       !isOccupied ? `Bed ${bed.id}: Empty` :
                       `Bed ${bed.id}: ${bed.ratio}${
                         isDischarged ? ' (Discharge)' :
-                        isToWard ? ' (To Ward)' :
+                        isToWard ? ` (To Ward${bed.newAdmissionAfterWard ? ` → ${bed.newAdmissionAfterWard}` : ''})` :
                         isTurnover ? ` (Turnover → ${bed.newRatio || '?'})` :
                         isAdmission ? ' (New Admission)' :
                         isChangeRatio ? ` (${bed.ratio} → ${bed.newRatio || '?'})` :
