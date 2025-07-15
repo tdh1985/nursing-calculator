@@ -490,7 +490,11 @@ const NursingCalculator = () => {
     }));
 
     // Calculate realistic admission capacity following nursing ratio rules
-    // Key rule: Nurses are limited by their ratio (max patients they can handle)
+    // Key rules:
+    // - 1:1 nurse can only handle 1 patient total
+    // - 1:2 nurse can handle max 2 patients from any ratio (except 1:1)
+    // - 1:3 nurse can handle max 3 patients from any ratio (but if has a 1:2, max is 2)
+    // - 1:4 nurse can handle max 4 patients from any ratio (but limited by existing patients)
     const calculateDetailedCapacity = () => {
       const detailedOptions = [];
       const unassignedNurses = totalNurses - activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
@@ -500,87 +504,101 @@ const NursingCalculator = () => {
       
       activeAssignments.forEach(nurse => {
         if (nurse.beds && nurse.beds.length > 0) {
-          // Find the highest ratio (max patients) this nurse can handle
-          const maxPatientsAllowed = Math.max(...nurse.beds.map(bed => bed.patientCount));
-          const currentPatientCount = nurse.beds.length;
-          const additionalCapacity = maxPatientsAllowed - currentPatientCount;
+          // Find the nurse's maximum capacity based on their current assignments
+          let maxPatientCapacity = 0;
+          let currentPatientCount = 0;
           
-          if (additionalCapacity > 0) {
+          nurse.beds.forEach(bed => {
+            currentPatientCount += 1; // Each bed has 1 patient
+            // The nurse's max capacity is determined by their most restrictive ratio
+            if (bed.patientCount === 1) {
+              maxPatientCapacity = 1; // 1:1 nurse can only have 1 patient
+            } else if (maxPatientCapacity !== 1) {
+              // Use the most restrictive non-1:1 ratio
+              if (maxPatientCapacity === 0 || bed.patientCount < maxPatientCapacity) {
+                maxPatientCapacity = bed.patientCount;
+              }
+            }
+          });
+          
+          const remainingCapacity = maxPatientCapacity - currentPatientCount;
+          
+          if (remainingCapacity > 0) {
             nursesWithCapacity.push({
-              maxPatients: maxPatientsAllowed,
-              currentPatients: currentPatientCount,
-              additionalCapacity: additionalCapacity
+              nurse: nurse,
+              currentPatientCount: currentPatientCount,
+              maxPatientCapacity: maxPatientCapacity,
+              remainingCapacity: remainingCapacity
             });
           }
         }
       });
       
-      // Calculate total nurses with spare capacity
-      const totalNursesWithCapacity = nursesWithCapacity.length;
+      // Check what admissions can actually be accommodated
+      const possibleAdmissions = {};
       
-      // If we have nurses with capacity, show what can be admitted
-      if (totalNursesWithCapacity > 0) {
-        // For nurses with existing patients, they can take ONE more patient at any ratio
-        // that doesn't exceed their current ratio limit
-        const options = [];
+      // For each ratio type, check if any nurse can take it
+      [1, 2, 3, 4].forEach(ratio => {
+        let canAdmit = 0;
         
-        // The nurse with 1:2 patient can take: 1 × 1:2 OR 1 × 1:3 OR 1 × 1:4
-        [2, 3, 4].forEach(ratio => {
-          if (availableBeds >= 1) {
-            options.push(`1 × 1:${ratio} patient`);
+        nursesWithCapacity.forEach(nurseInfo => {
+          // A nurse can take a patient if they have room
+          // But they cannot take a 1:1 patient unless they have no patients
+          if (ratio === 1 && nurseInfo.currentPatientCount === 0) {
+            canAdmit++;
+          } else if (ratio > 1 && nurseInfo.remainingCapacity > 0) {
+            // For ratios 1:2, 1:3, 1:4, just need available capacity
+            canAdmit++;
           }
         });
         
-        if (options.length > 0) {
-          // Push each option as a separate item for line-by-line display
-          options.forEach(option => {
-            detailedOptions.push({
-              text: option
-            });
-          });
+        if (canAdmit > 0 && availableBeds > 0) {
+          possibleAdmissions[ratio] = Math.min(canAdmit, availableBeds);
         }
-      }
+      });
+      
+      // Generate options based on what's actually possible
+      Object.entries(possibleAdmissions).forEach(([ratio, count]) => {
+        detailedOptions.push({
+          text: `${count} × 1:${ratio} patient${count > 1 ? 's' : ''}`
+        });
+      });
       
       // Handle unassigned nurses separately
       if (unassignedNurses > 0 && availableBeds > 0) {
-        const unassignedCapacityOptions = [];
-        
-        [1, 2, 3, 4].forEach(ratio => {
-          const nursesNeeded = Math.ceil(availableBeds / ratio);
-          const nursesUsed = Math.min(nursesNeeded, unassignedNurses);
-          const patientsAccommodated = Math.min(nursesUsed * ratio, availableBeds);
+        // If we have no options from assigned nurses, show what unassigned nurses can do
+        if (detailedOptions.length === 0) {
+          [1, 2, 3, 4].forEach(ratio => {
+            const nursesNeeded = Math.ceil(availableBeds / ratio);
+            const nursesUsed = Math.min(nursesNeeded, unassignedNurses);
+            const patientsAccommodated = Math.min(nursesUsed * ratio, availableBeds);
+            
+            if (patientsAccommodated > 0) {
+              detailedOptions.push({
+                text: `${patientsAccommodated} × 1:${ratio} patient${patientsAccommodated > 1 ? 's' : ''} (using ${nursesUsed} new nurse${nursesUsed > 1 ? 's' : ''})`
+              });
+            }
+          });
+        } else {
+          // We have capacity from assigned nurses, add unassigned as additional options
+          const additionalOptions = [];
+          [1, 2, 3, 4].forEach(ratio => {
+            const nursesNeeded = Math.ceil(availableBeds / ratio);
+            const nursesUsed = Math.min(nursesNeeded, unassignedNurses);
+            const patientsAccommodated = Math.min(nursesUsed * ratio, availableBeds);
+            
+            if (patientsAccommodated > 0) {
+              additionalOptions.push(`${patientsAccommodated} × 1:${ratio} patient${patientsAccommodated > 1 ? 's' : ''} (using ${nursesUsed} new nurse${nursesUsed > 1 ? 's' : ''})`);
+            }
+          });
           
-          if (patientsAccommodated > 0) {
-            unassignedCapacityOptions.push({
-              ratio: ratio,
-              count: patientsAccommodated,
-              nurses: nursesUsed
+          // Add as "AND" options if we have them
+          if (additionalOptions.length > 0) {
+            additionalOptions.forEach(opt => {
+              detailedOptions.push({ text: 'AND ' + opt });
             });
           }
-        });
-        
-        // Group by patient count for cleaner display
-        const groupedByCount = {};
-        unassignedCapacityOptions.forEach(opt => {
-          if (!groupedByCount[opt.count]) {
-            groupedByCount[opt.count] = [];
-          }
-          groupedByCount[opt.count].push(opt);
-        });
-        
-        // Create text for unassigned options
-        Object.entries(groupedByCount).forEach(([count, opts]) => {
-          if (opts.length === 1) {
-            const opt = opts[0];
-            const text = `${count} × 1:${opt.ratio} patient${count > 1 ? 's' : ''}`;
-            detailedOptions.push({ text: detailedOptions.length > 0 ? 'AND ' + text : text });
-          } else {
-            // Multiple ratios can achieve the same count
-            const ratioTexts = opts.map(opt => `1:${opt.ratio}`);
-            const text = `${count} × (${ratioTexts.join(' OR ')}) patient${count > 1 ? 's' : ''}`;
-            detailedOptions.push({ text: detailedOptions.length > 0 ? 'AND ' + text : text });
-          }
-        });
+        }
       }
       
       return detailedOptions;

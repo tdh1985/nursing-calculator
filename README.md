@@ -16,6 +16,15 @@ A modern, professional hospital nursing calculator for advanced shift planning. 
 - **Visual Bed Status**: Color-coded bed occupancy visualization
 - **Admission Capacity**: Real-time calculation of additional admission capacity
 
+## for calculations ntoe that
+  1. 1:1 ratio: Nurse can only handle 1 patient total
+  2. 1:2 ratio: Nurse can handle maximum 2 patients from any
+  ratio (except 1:1)
+  3. 1:3 ratio: Nurse can handle maximum 3 patients, but if
+  they already have a 1:2 patient, they're limited to 2 total
+  4. 1:4 ratio: Nurse can handle maximum 4 patients, but
+  limited by their most restrictive existing assignment
+
 ## Live Demo
 
 Visit: [https://tdh1985.github.io/nursing-calculator](https://tdh1985.github.io/nursing-calculator)
