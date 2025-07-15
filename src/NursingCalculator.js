@@ -451,44 +451,94 @@ const NursingCalculator = () => {
       const detailedOptions = [];
       const unassignedNurses = totalNurses - activeAssignments.filter(nurse => nurse.beds && nurse.beds.length > 0).length;
       
-      // For each ratio type, calculate how many can actually be admitted
-      [1, 2, 3, 4].forEach(ratio => {
-        let count = 0;
-        let remainingBeds = availableBeds;
-        
-        // Count how many nurses can take patients at this specific ratio
-        activeAssignments.forEach(nurse => {
-          if (nurse.beds && nurse.beds.length > 0) {
-            // Check if this nurse has patients at this ratio
-            const nurseRatio = nurse.beds[0].patientCount;
-            if (nurseRatio === ratio) {
-              // This nurse can only take more patients at the same ratio
-              const currentPatientCount = nurse.beds.length;
-              const additionalPatientsAllowed = ratio - currentPatientCount;
-              const additionalPatientsPossible = Math.min(additionalPatientsAllowed, remainingBeds);
-              count += additionalPatientsPossible;
-              remainingBeds -= additionalPatientsPossible;
+      // First, check capacity from nurses with existing assignments
+      const capacityByRatio = {};
+      
+      activeAssignments.forEach(nurse => {
+        if (nurse.beds && nurse.beds.length > 0) {
+          // This nurse can only take more patients at their current ratio
+          const nurseRatio = nurse.beds[0].patientCount;
+          const currentPatientCount = nurse.beds.length;
+          const additionalPatientsAllowed = nurseRatio - currentPatientCount;
+          
+          if (additionalPatientsAllowed > 0) {
+            if (!capacityByRatio[nurseRatio]) {
+              capacityByRatio[nurseRatio] = 0;
             }
-            // If nurse has different ratio, they can't take any patients at this ratio
+            capacityByRatio[nurseRatio] += additionalPatientsAllowed;
           }
-        });
-        
-        // Unassigned nurses can take patients at any ratio
-        if (unassignedNurses > 0 && remainingBeds > 0) {
-          const nursesNeeded = Math.ceil(remainingBeds / ratio);
-          const nursesAvailable = Math.min(nursesNeeded, unassignedNurses);
-          const additionalPatients = Math.min(nursesAvailable * ratio, remainingBeds);
-          count += additionalPatients;
         }
-        
-        if (count > 0) {
+      });
+      
+      // Add capacity from assigned nurses
+      Object.entries(capacityByRatio).forEach(([ratio, count]) => {
+        if (count > 0 && availableBeds >= count) {
           detailedOptions.push({
-            ratio: ratio,
-            count: count,
-            text: `${count} × 1:${ratio} patient${count > 1 ? 's' : ''}`
+            ratio: parseInt(ratio),
+            count: Math.min(count, availableBeds),
+            text: `${Math.min(count, availableBeds)} × 1:${ratio} patient${count > 1 ? 's' : ''}`
           });
         }
       });
+      
+      // If there are unassigned nurses, show what they could take
+      if (unassignedNurses > 0 && availableBeds > 0) {
+        // Show options for different ratios with unassigned nurses
+        const unassignedOptions = [];
+        
+        [1, 2, 3, 4].forEach(ratio => {
+          const maxPatientsPerNurse = ratio;
+          const nursesNeeded = Math.ceil(availableBeds / maxPatientsPerNurse);
+          const nursesUsed = Math.min(nursesNeeded, unassignedNurses);
+          const patientsAccommodated = Math.min(nursesUsed * maxPatientsPerNurse, availableBeds);
+          
+          if (patientsAccommodated > 0) {
+            // Check if we already have this option from assigned nurses
+            const existingOption = detailedOptions.find(opt => opt.ratio === ratio);
+            if (!existingOption) {
+              unassignedOptions.push({
+                ratio: ratio,
+                count: patientsAccommodated,
+                text: `${patientsAccommodated} × 1:${ratio} patient${patientsAccommodated > 1 ? 's' : ''} (using ${nursesUsed} unassigned nurse${nursesUsed > 1 ? 's' : ''})`
+              });
+            }
+          }
+        });
+        
+        // Only show OR options if there are multiple choices from unassigned nurses
+        if (unassignedOptions.length > 0) {
+          if (detailedOptions.length > 0) {
+            // We have both assigned and unassigned capacity
+            detailedOptions[0].text += ' (from assigned nurses)';
+            
+            if (unassignedOptions.length === 1) {
+              detailedOptions.push({
+                ...unassignedOptions[0],
+                text: 'AND ' + unassignedOptions[0].text
+              });
+            } else {
+              unassignedOptions.forEach((opt, index) => {
+                detailedOptions.push({
+                  ...opt,
+                  text: (index === 0 ? 'AND ' : 'OR ') + opt.text
+                });
+              });
+            }
+          } else {
+            // Only unassigned nurses available
+            detailedOptions.push(...unassignedOptions);
+            
+            // Add OR between options if multiple
+            if (detailedOptions.length > 1) {
+              detailedOptions.forEach((opt, index) => {
+                if (index > 0) {
+                  opt.text = 'OR ' + opt.text;
+                }
+              });
+            }
+          }
+        }
+      }
       
       return detailedOptions;
     };
