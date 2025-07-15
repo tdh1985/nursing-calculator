@@ -11,7 +11,8 @@ const NursingCalculator = () => {
       moveNewRatio: '',
       admissionAfterMove: '',
       newAdmissionAfterWard: '',
-      nurseAssigned: null
+      nurseAssigned: null,
+      pmNightNurseAssigned: null
     }))
   );
   
@@ -245,12 +246,13 @@ const NursingCalculator = () => {
       const assignedBed = bedsWithRatios.find(b => b.id === bed.id);
       return {
         ...bed,
-        nurseAssigned: assignedBed ? assignedBed.nurseAssigned : null
+        nurseAssigned: assignedBed ? assignedBed.nurseAssigned : null,
+        pmNightNurseAssigned: bed.pmNightNurseAssigned // Keep existing PM/Night assignment
       };
     });
 
     
-    setBeds(updatedBeds);
+    // Don't set beds here, wait until PM/Night assignments are calculated
     setNurseAssignments(assignments);
     
     // Calculate nurses for different shifts
@@ -305,37 +307,79 @@ const NursingCalculator = () => {
       '3': pmBedsWithRatios.filter(bed => bed.patientCount === 3)
     };
     
-    // Assign 1:1 patients
+    // Create optimal assignments with workload balancing
+    const allPmBeds = [...pmGroups['1'], ...pmGroups['2'], ...pmGroups['3']];
+    
+    // Sort beds by patient count (1:1 first, then 1:2, then 1:3)
+    allPmBeds.sort((a, b) => a.patientCount - b.patientCount);
+    
+    // Assign 1:1 patients first (they must have their own nurse)
     pmGroups['1'].forEach(bed => {
-      pmNightAssignments.push({ id: pmNurseId++, beds: [bed] });
+      pmNightAssignments.push({ 
+        id: pmNurseId++, 
+        beds: [bed],
+        workload: 1.0 // 100% workload
+      });
     });
     
-    // Assign 1:2 patients (2 per nurse)
-    const pm2PatientBeds = [...pmGroups['2']];
-    while (pm2PatientBeds.length >= 2) {
-      pmNightAssignments.push({
-        id: pmNurseId++,
-        beds: [pm2PatientBeds.shift(), pm2PatientBeds.shift()]
-      });
+    // For 1:2 and 1:3 patients, use a balanced assignment approach
+    const unassignedBeds = [...pmGroups['2'], ...pmGroups['3']];
+    
+    // Create nurses for remaining beds with optimal grouping
+    while (unassignedBeds.length > 0) {
+      const nurse = { id: pmNurseId++, beds: [], workload: 0 };
+      
+      // Try to assign beds to reach optimal workload (close to 1.0)
+      for (let i = unassignedBeds.length - 1; i >= 0; i--) {
+        const bed = unassignedBeds[i];
+        const bedWorkload = 1 / bed.patientCount;
+        
+        if (nurse.workload + bedWorkload <= 1.0) {
+          nurse.beds.push(bed);
+          nurse.workload += bedWorkload;
+          unassignedBeds.splice(i, 1);
+          
+          // If workload is at or near 1.0, stop adding beds
+          if (nurse.workload >= 0.95) break;
+        }
+      }
+      
+      if (nurse.beds.length > 0) {
+        pmNightAssignments.push(nurse);
+      }
     }
     
-    // Assign 1:3 patients (3 per nurse)
-    const pm3PatientBeds = [...pmGroups['3']];
-    while (pm3PatientBeds.length >= 3) {
-      pmNightAssignments.push({
-        id: pmNurseId++,
-        beds: [pm3PatientBeds.shift(), pm3PatientBeds.shift(), pm3PatientBeds.shift()]
+    // Update beds with PM/Night nurse assignments
+    const finalBeds = updatedBeds.map(bed => {
+      // Find PM/Night assignment for this bed
+      let pmNightNurse = null;
+      
+      // Check all PM/Night assignments, not just ward transfers
+      pmNightAssignments.forEach(nurse => {
+        nurse.beds.forEach(assignedBed => {
+          if (assignedBed.id === bed.id) {
+            pmNightNurse = nurse.id;
+          }
+        });
       });
-    }
+      
+      // Special handling for ward transfers with new admissions
+      if (bed.status === 'toWard' && bed.newAdmissionAfterWard && pmNightNurse) {
+        // This nurse will handle the new admission in PM/Night
+        return {
+          ...bed,
+          pmNightNurseAssigned: pmNightNurse
+        };
+      }
+      
+      return {
+        ...bed,
+        pmNightNurseAssigned: bed.status === 'toWard' ? null : pmNightNurse
+      };
+    });
     
-    // Handle remaining beds
-    const pmRemainingBeds = [...pm2PatientBeds, ...pm3PatientBeds];
-    if (pmRemainingBeds.length > 0) {
-      pmNightAssignments.push({
-        id: pmNurseId++,
-        beds: pmRemainingBeds
-      });
-    }
+    setBeds(finalBeds);
+    setNurseAssignments(assignments);
     
     const pmNightBaseNurses = pmNightAssignments.length;
     const pmNightTotalWithInCharge = pmNightBaseNurses + (includeInCharge ? 1 : 0);
@@ -777,6 +821,16 @@ const NursingCalculator = () => {
                         }}
                       >
                         N{bed.nurseAssigned}
+                      </span>
+                    )}
+                    {bed.status === 'toWard' && bed.newAdmissionAfterWard && bed.pmNightNurseAssigned && (
+                      <span 
+                        className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
+                        style={{ 
+                          backgroundImage: `linear-gradient(135deg, hsl(${bed.pmNightNurseAssigned * 60}, 70%, 55%), hsl(${bed.pmNightNurseAssigned * 60 + 30}, 70%, 45%))`
+                        }}
+                      >
+                        N{bed.pmNightNurseAssigned} (PM/Night)
                       </span>
                     )}
                   </div>
