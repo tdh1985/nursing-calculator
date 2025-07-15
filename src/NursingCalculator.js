@@ -169,11 +169,12 @@ const NursingCalculator = () => {
 
     // Groups are processed in priority order: 1:1, then 1:2, then 1:3
 
-    // Use the original working logic from the user's code
+    // Use the original working logic from the user's code with preference for same-ratio grouping
     const groupsCopy = {
       '1': groups['1'] ? [...groups['1']] : [],
       '2': groups['2'] ? [...groups['2']] : [],
-      '3': groups['3'] ? [...groups['3']] : []
+      '3': groups['3'] ? [...groups['3']] : [],
+      '4': groups['4'] ? [...groups['4']] : []
     };
 
     // 1:1 patients each get their own nurse
@@ -186,7 +187,7 @@ const NursingCalculator = () => {
       assignments.push(nurse);
     });
 
-    // Group 1:2 patients (2 per nurse)
+    // Group 1:2 patients (2 per nurse) - maintain same ratio grouping
     while (groupsCopy['2'].length >= 2) {
       const nurse = {
         id: nurseId++,
@@ -200,7 +201,7 @@ const NursingCalculator = () => {
       assignments.push(nurse);
     }
 
-    // Group 1:3 patients (3 per nurse)
+    // Group 1:3 patients (3 per nurse) - maintain same ratio grouping
     while (groupsCopy['3'].length >= 3) {
       const nurse = {
         id: nurseId++,
@@ -214,21 +215,46 @@ const NursingCalculator = () => {
       assignments.push(nurse);
     }
 
-    // Handle remaining patients by assigning them to existing nurses with capacity
-    const remaining = [...groupsCopy['2'], ...groupsCopy['3']];
+    // Group 1:4 patients (4 per nurse) - maintain same ratio grouping
+    while (groupsCopy['4'].length >= 4) {
+      const nurse = {
+        id: nurseId++,
+        beds: []
+      };
+      for (let i = 0; i < 4; i++) {
+        const bed = groupsCopy['4'].shift();
+        bed.nurseAssigned = nurse.id;
+        nurse.beds.push(bed);
+      }
+      assignments.push(nurse);
+    }
+
+    // Handle remaining patients by trying to maintain patient count limits
+    const remaining = [...groupsCopy['2'], ...groupsCopy['3'], ...groupsCopy['4']];
     
     remaining.forEach(bed => {
       let assigned = false;
       
+      // Try to assign to a nurse with matching ratio if possible
       for (let nurse of assignments) {
-        const currentLoad = nurse.beds.reduce((sum, b) => sum + (1 / b.patientCount), 0);
-        const newLoad = currentLoad + (1 / bed.patientCount);
-        
-        if (newLoad <= 1.0) {
-          nurse.beds.push(bed);
-          bed.nurseAssigned = nurse.id;
-          assigned = true;
-          break;
+        if (nurse.beds.length > 0) {
+          const nurseRatio = nurse.beds[0].patientCount;
+          const currentPatientCount = nurse.beds.length;
+          const maxCapacity = nurseRatio === 1 ? 1 : nurseRatio;
+          
+          // Check if nurse has capacity and prefers same ratio
+          if (currentPatientCount < maxCapacity) {
+            // Prefer assigning same ratio patients together
+            if (bed.patientCount === nurseRatio || 
+                (bed.patientCount !== nurseRatio && !assignments.some(n => 
+                  n.beds[0]?.patientCount === bed.patientCount && 
+                  n.beds.length < n.beds[0].patientCount))) {
+              nurse.beds.push(bed);
+              bed.nurseAssigned = nurse.id;
+              assigned = true;
+              break;
+            }
+          }
         }
       }
       
@@ -304,11 +330,12 @@ const NursingCalculator = () => {
     const pmGroups = {
       '1': pmBedsWithRatios.filter(bed => bed.patientCount === 1),
       '2': pmBedsWithRatios.filter(bed => bed.patientCount === 2),
-      '3': pmBedsWithRatios.filter(bed => bed.patientCount === 3)
+      '3': pmBedsWithRatios.filter(bed => bed.patientCount === 3),
+      '4': pmBedsWithRatios.filter(bed => bed.patientCount === 4)
     };
     
     // Create optimal assignments with workload balancing
-    const allPmBeds = [...pmGroups['1'], ...pmGroups['2'], ...pmGroups['3']];
+    const allPmBeds = [...pmGroups['1'], ...pmGroups['2'], ...pmGroups['3'], ...pmGroups['4']];
     
     // Sort beds by patient count (1:1 first, then 1:2, then 1:3)
     allPmBeds.sort((a, b) => a.patientCount - b.patientCount);
@@ -322,10 +349,59 @@ const NursingCalculator = () => {
       });
     });
     
-    // For 1:2 and 1:3 patients, use a balanced assignment approach
-    const unassignedBeds = [...pmGroups['2'], ...pmGroups['3']];
+    // For 1:2, 1:3, and 1:4 patients, try to maintain same ratio groupings when possible
+    const unassignedBeds = [...pmGroups['2'], ...pmGroups['3'], ...pmGroups['4']];
     
-    // Create nurses for remaining beds with optimal grouping
+    // First, try to group same-ratio patients together (preferred for consistency)
+    // Group 1:2 patients (2 per nurse)
+    const beds1to2 = unassignedBeds.filter(bed => bed.patientCount === 2);
+    while (beds1to2.length >= 2) {
+      const nurse = { 
+        id: pmNurseId++, 
+        beds: [beds1to2.shift(), beds1to2.shift()],
+        workload: 1.0
+      };
+      pmNightAssignments.push(nurse);
+      // Remove assigned beds from unassigned list
+      nurse.beds.forEach(bed => {
+        const idx = unassignedBeds.findIndex(b => b.id === bed.id);
+        if (idx !== -1) unassignedBeds.splice(idx, 1);
+      });
+    }
+    
+    // Group 1:3 patients (3 per nurse)
+    const beds1to3 = unassignedBeds.filter(bed => bed.patientCount === 3);
+    while (beds1to3.length >= 3) {
+      const nurse = { 
+        id: pmNurseId++, 
+        beds: [beds1to3.shift(), beds1to3.shift(), beds1to3.shift()],
+        workload: 1.0
+      };
+      pmNightAssignments.push(nurse);
+      // Remove assigned beds from unassigned list
+      nurse.beds.forEach(bed => {
+        const idx = unassignedBeds.findIndex(b => b.id === bed.id);
+        if (idx !== -1) unassignedBeds.splice(idx, 1);
+      });
+    }
+    
+    // Group 1:4 patients (4 per nurse)
+    const beds1to4 = unassignedBeds.filter(bed => bed.patientCount === 4);
+    while (beds1to4.length >= 4) {
+      const nurse = { 
+        id: pmNurseId++, 
+        beds: [beds1to4.shift(), beds1to4.shift(), beds1to4.shift(), beds1to4.shift()],
+        workload: 1.0
+      };
+      pmNightAssignments.push(nurse);
+      // Remove assigned beds from unassigned list
+      nurse.beds.forEach(bed => {
+        const idx = unassignedBeds.findIndex(b => b.id === bed.id);
+        if (idx !== -1) unassignedBeds.splice(idx, 1);
+      });
+    }
+    
+    // Handle remaining beds with balanced assignment approach
     while (unassignedBeds.length > 0) {
       const nurse = { id: pmNurseId++, beds: [], workload: 0 };
       
