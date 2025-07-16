@@ -405,19 +405,39 @@ const NursingCalculator = () => {
     while (unassignedBeds.length > 0) {
       const nurse = { id: pmNurseId++, beds: [], workload: 0 };
       
-      // Try to assign beds to reach optimal workload (close to 1.0)
+      // Determine nurse's maximum capacity based on assigned patients
+      let maxPatientCapacity = 4; // Start with highest possible
+      let currentPatientCount = 0;
+      
+      // Try to assign beds while respecting ratio constraints
       for (let i = unassignedBeds.length - 1; i >= 0; i--) {
         const bed = unassignedBeds[i];
-        const bedWorkload = 1 / bed.patientCount;
         
-        if (nurse.workload + bedWorkload <= 1.0) {
+        // Check if adding this patient would exceed capacity
+        if (currentPatientCount === 0) {
+          // First patient determines the nurse's max capacity
           nurse.beds.push(bed);
-          nurse.workload += bedWorkload;
+          nurse.workload += 1 / bed.patientCount;
+          currentPatientCount = 1;
+          maxPatientCapacity = bed.patientCount;
           unassignedBeds.splice(i, 1);
+        } else {
+          // Check if we can add another patient
+          // The nurse's capacity is limited by their most restrictive patient
+          if (bed.patientCount < maxPatientCapacity) {
+            maxPatientCapacity = bed.patientCount;
+          }
           
-          // If workload is at or near 1.0, stop adding beds
-          if (nurse.workload >= 0.95) break;
+          if (currentPatientCount < maxPatientCapacity) {
+            nurse.beds.push(bed);
+            nurse.workload += 1 / bed.patientCount;
+            currentPatientCount++;
+            unassignedBeds.splice(i, 1);
+          }
         }
+        
+        // Stop if nurse is at capacity
+        if (currentPatientCount >= maxPatientCapacity) break;
       }
       
       if (nurse.beds.length > 0) {
