@@ -586,12 +586,15 @@ const NursingCalculator = () => {
           
           nurse.beds.forEach(bed => {
             currentPatientCount += 1; // Each bed has 1 patient
-            // The nurse's max capacity is determined by their most restrictive ratio
+            // The nurse's max capacity is determined by the highest ratio they're handling
+            // A nurse handling a 1:3 patient can handle up to 3 patients total
+            // A nurse handling a 1:2 patient can handle up to 2 patients total
+            // Exception: a 1:1 nurse can only handle 1 patient
             if (bed.patientCount === 1) {
               maxPatientCapacity = 1; // 1:1 nurse can only have 1 patient
             } else if (maxPatientCapacity !== 1) {
-              // Use the most restrictive non-1:1 ratio
-              if (maxPatientCapacity === 0 || bed.patientCount < maxPatientCapacity) {
+              // Use the highest ratio (most patients)
+              if (bed.patientCount > maxPatientCapacity) {
                 maxPatientCapacity = bed.patientCount;
               }
             }
@@ -613,23 +616,51 @@ const NursingCalculator = () => {
       // Check what admissions can actually be accommodated
       const possibleAdmissions = {};
       
-      // For each ratio type, check if any nurse can take it
+      // For each ratio type, simulate actual assignment
       [1, 2, 3, 4].forEach(ratio => {
         let canAdmit = 0;
         
-        nursesWithCapacity.forEach(nurseInfo => {
-          // A nurse can take a patient if they have room
-          // But they cannot take a 1:1 patient unless they have no patients
-          if (ratio === 1 && nurseInfo.currentPatientCount === 0) {
-            canAdmit++;
-          } else if (ratio > 1 && nurseInfo.remainingCapacity > 0) {
-            // For ratios 1:2, 1:3, 1:4, just need available capacity
-            canAdmit++;
-          }
-        });
+        // Create a copy of nurses with capacity to simulate assignments
+        let simulatedNurses = nursesWithCapacity.map(n => ({...n}));
         
-        if (canAdmit > 0 && availableBeds > 0) {
-          possibleAdmissions[ratio] = Math.min(canAdmit, availableBeds);
+        // Keep assigning patients until we can't anymore
+        let bedsUsed = 0;
+        while (bedsUsed < availableBeds) {
+          let assigned = false;
+          
+          // Find a nurse who can take this patient
+          for (let i = 0; i < simulatedNurses.length; i++) {
+            const nurseInfo = simulatedNurses[i];
+            
+            if (ratio === 1 && nurseInfo.currentPatientCount === 0) {
+              // 1:1 patient needs a nurse with no patients
+              canAdmit++;
+              simulatedNurses.splice(i, 1); // Remove this nurse from available pool
+              assigned = true;
+              bedsUsed++;
+              break;
+            } else if (ratio > 1 && nurseInfo.remainingCapacity > 0) {
+              // Assign the patient to this nurse
+              canAdmit++;
+              nurseInfo.currentPatientCount++;
+              nurseInfo.remainingCapacity--;
+              assigned = true;
+              bedsUsed++;
+              
+              // If nurse is now full, remove from available pool
+              if (nurseInfo.remainingCapacity === 0) {
+                simulatedNurses.splice(i, 1);
+              }
+              break;
+            }
+          }
+          
+          // If we couldn't assign to any nurse, we're done for this ratio
+          if (!assigned) break;
+        }
+        
+        if (canAdmit > 0) {
+          possibleAdmissions[ratio] = canAdmit;
         }
       });
       
