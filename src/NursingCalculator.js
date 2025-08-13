@@ -27,6 +27,7 @@ const NursingCalculator = () => {
   const [expectedNursesPM, setExpectedNursesPM] = useState(0);
   const [expectedNursesNight, setExpectedNursesNight] = useState(0);
   const [viewMode, setViewMode] = useState('combined');
+  const [staffOnAM, setStaffOnAM] = useState('');
 
   const parseRatio = (ratioStr) => {
     if (!ratioStr || !ratioStr.includes(':')) return null;
@@ -841,6 +842,30 @@ const NursingCalculator = () => {
               <label className="text-sm text-gray-600 font-medium block mb-2">Nurses Required</label>
               <div className="text-4xl font-bold text-gray-900">{expectedNursesAM}</div>
               <p className="text-sm text-gray-500 mt-1">8-hour shift</p>
+            </div>
+            <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <label className="text-sm text-gray-600 font-medium block mb-2">Staff On (AM)</label>
+              <div className="flex items-baseline gap-3">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  className="w-28 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  value={staffOnAM}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '' || /^\d+$/.test(v)) setStaffOnAM(v);
+                  }}
+                  placeholder="0"
+                />
+                {staffOnAM !== '' && (
+                  <span className={`text-sm font-medium ${parseInt(staffOnAM, 10) - expectedNursesAM >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {parseInt(staffOnAM, 10) - expectedNursesAM >= 0 ? '+' : ''}{parseInt(staffOnAM || '0', 10) - expectedNursesAM}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Compare to required</p>
             </div>
             {expectedNursesAM > 0 && (
               <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">

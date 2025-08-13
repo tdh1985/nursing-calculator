@@ -59,6 +59,25 @@ To deploy to GitHub Pages:
 npm run deploy
 ```
 
+## Run with Docker
+
+Development (hot-reload):
+
+```bash
+docker compose up --build
+```
+
+The app will be available at http://localhost:3000
+
+Production (static build served by Nginx):
+
+```bash
+docker build -t nursing-calculator:prod .
+docker run --rm -p 8080:80 nursing-calculator:prod
+```
+
+Open http://localhost:8080
+
 ## Usage
 
 1. **AM Shift**: Enter the number of nurses for the morning shift
